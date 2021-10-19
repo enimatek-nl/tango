@@ -36,7 +36,7 @@ Where Tangu is nim 100% transpiled Javascript, Tango is golang compiled to WASM.
         // add logic to the scope
         }
     })
-    // bootstrap tangu
+    // bootstrap tango
     tg.Bootstrap()
 ```
 

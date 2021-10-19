@@ -14,5 +14,5 @@ const (
 type Directive interface {
 	Kind() Kind
 	Name() string
-	Callback(self *Tangu, scope *Scope, node js.Value, attrs map[string]js.Value, queue *Queue)
+	Callback(self *Tango, scope *Scope, node js.Value, attrs map[string]js.Value, queue *Queue)
 }

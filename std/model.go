@@ -15,7 +15,7 @@ func (m Model) Name() string {
 	return "tng-model"
 }
 
-func (m Model) Callback(self *tango.Tangu, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
+func (m Model) Callback(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
 	if valueOf, e := attrs[m.Name()]; e {
 		act := "keyup"
 		// TODO: more exceptions needed?

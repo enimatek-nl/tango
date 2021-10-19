@@ -21,29 +21,29 @@ type Route struct {
 	controller *Controller
 }
 
-type Tangu struct {
+type Tango struct {
 	scope      *Scope
 	directives []Directive
 	routes     map[string]Route
 	Root       js.Value
 }
 
-func New() *Tangu {
-	return &Tangu{
+func New() *Tango {
+	return &Tango{
 		scope:  NewScope(nil),
 		routes: make(map[string]Route),
 	}
 }
 
-func (t *Tangu) AddRoute(path string, controller *Controller) {
+func (t *Tango) AddRoute(path string, controller *Controller) {
 	t.routes[path] = Route{controller: controller}
 }
 
-func (t *Tangu) AddDirective(directives ...Directive) {
+func (t *Tango) AddDirective(directives ...Directive) {
 	t.directives = directives
 }
 
-func (t *Tangu) Bootstrap() {
+func (t *Tango) Bootstrap() {
 	js.Global().Get("window").Call("addEventListener", "hashchange", js.FuncOf(
 		func(this js.Value, args []js.Value) interface{} {
 			hash := js.Global().Get("window").Get("location").Get("hash").String()
@@ -54,7 +54,7 @@ func (t *Tangu) Bootstrap() {
 	t.finish(t.scope, js.Global().Get("document").Call("getElementsByTagName", "body").Index(0))
 }
 
-func (t *Tangu) Navigate(path string) {
+func (t *Tango) Navigate(path string) {
 	if route, exists := t.routes[path]; exists {
 		if route.controller.Scope == nil {
 			route.controller.Scope = NewScope(t.scope)
@@ -69,7 +69,7 @@ func (t *Tangu) Navigate(path string) {
 	}
 }
 
-func (t *Tangu) finish(scope *Scope, node js.Value) {
+func (t *Tango) finish(scope *Scope, node js.Value) {
 	var queue Queue
 	t.Compile(scope, node, &queue)
 	scope.Digest()
@@ -80,7 +80,7 @@ func (t *Tangu) finish(scope *Scope, node js.Value) {
 	}
 }
 
-func (t *Tangu) Compile(scope *Scope, node js.Value, queue *Queue) {
+func (t *Tango) Compile(scope *Scope, node js.Value, queue *Queue) {
 	if !node.Equal(t.Root) {
 		t.exec(scope, node, queue)
 	}
@@ -91,7 +91,7 @@ func (t *Tangu) Compile(scope *Scope, node js.Value, queue *Queue) {
 	}
 }
 
-func (t *Tangu) exec(scope *Scope, node js.Value, queue *Queue) {
+func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) {
 	m := make(map[string]js.Value)
 
 	// collect all attributes in a single map

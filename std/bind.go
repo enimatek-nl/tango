@@ -15,7 +15,7 @@ func (b Bind) Name() string {
 	return "tng-bind"
 }
 
-func (b Bind) Callback(self *tango.Tangu, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
+func (b Bind) Callback(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
 	if valueOf, e := attrs[b.Name()]; e {
 		if _, e := scope.Get(valueOf.String()); e {
 			scope.AddSubscription(valueOf.String(), func(scope *tango.Scope, value js.Value) {
