@@ -6,13 +6,13 @@ _Lightweight WASM HTML / Javascript Framework_
 WebAssembly is nice, Go on the web is nice, so I ported [Tangu](https://github.com/enimatek-nl/tangu/) to Go and
 WebAssembly.
 
-Tangu is an AngularJS inspired compiled to Javascript framework created in [nim](https://nim-lang.org).
+Tangu is an AngularJS inspired project I started a while back to explore [nim](https://nim-lang.org).
 
-Where Tangu is eventually 100% transpiled Javascript, Tango is compiled to WASM.
+Where Tangu is nim 100% transpiled Javascript, Tango is golang compiled to WASM.
 
 ### Usage
 
-`go get github.com/enimatek-nl/tango`
+`GOOS=js GOARCH=wasm go get github.com/enimatek-nl/tango`
 
 ### Get Started
 
@@ -39,3 +39,5 @@ Where Tangu is eventually 100% transpiled Javascript, Tango is compiled to WASM.
     // bootstrap tangu
     tg.Bootstrap()
 ```
+
+_This project is a WIP..._
