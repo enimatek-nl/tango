@@ -65,6 +65,10 @@ func (s *Scope) Add(name string, value js.Value) {
 	}
 }
 
+func (s *Scope) Parent() *Scope {
+	return s.parent
+}
+
 func (s *Scope) Get(name string) (js.Value, bool) {
 	parts := strings.Split(name, ".")
 	exists := false
