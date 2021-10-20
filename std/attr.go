@@ -8,12 +8,16 @@ import (
 
 type Attr struct{}
 
+func (a Attr) Name() string {
+	return "tng-attr"
+}
+
 func (a Attr) Kind() tango.Kind {
 	return tango.Attribute
 }
 
-func (a Attr) Name() string {
-	return "tng-attr"
+func (a Attr) Scoped() bool {
+	return false
 }
 
 func (a Attr) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
@@ -49,3 +53,9 @@ func (a Attr) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, 
 		panic(a.Name() + " attribute not set")
 	}
 }
+
+func (a Attr) BeforeRender(scope *tango.Scope) {}
+
+func (a Attr) Render() string { return "" }
+
+func (a Attr) AfterRender(scope *tango.Scope) {}

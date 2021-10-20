@@ -9,12 +9,16 @@ type Router struct{}
 
 const PATH = "path"
 
+func (r Router) Name() string {
+	return "Router"
+}
+
 func (r Router) Kind() tango.Kind {
 	return tango.Tag
 }
 
-func (r Router) Name() string {
-	return "Router"
+func (r Router) Scoped() bool {
+	return false
 }
 
 func (r Router) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
@@ -28,3 +32,9 @@ func (r Router) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value
 		panic("don't forget to set a 'path=' attribute")
 	}
 }
+
+func (r Router) BeforeRender(scope *tango.Scope) {}
+
+func (r Router) Render() string { return "" }
+
+func (r Router) AfterRender(scope *tango.Scope) {}

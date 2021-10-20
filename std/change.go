@@ -7,12 +7,16 @@ import (
 
 type Change struct{}
 
+func (c Change) Name() string {
+	return "tng-change"
+}
+
 func (c Change) Kind() tango.Kind {
 	return tango.Attribute
 }
 
-func (c Change) Name() string {
-	return "tng-change"
+func (c Change) Scoped() bool {
+	return false
 }
 
 func (c Change) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
@@ -27,3 +31,9 @@ func (c Change) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value
 		panic(c.Name() + " attribute not set")
 	}
 }
+
+func (c Change) BeforeRender(scope *tango.Scope) {}
+
+func (c Change) Render() string { return "" }
+
+func (c Change) AfterRender(scope *tango.Scope) {}

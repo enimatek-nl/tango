@@ -7,12 +7,16 @@ import (
 
 type Click struct{}
 
+func (c Click) Name() string {
+	return "tng-click"
+}
+
 func (c Click) Kind() tango.Kind {
 	return tango.Attribute
 }
 
-func (c Click) Name() string {
-	return "tng-click"
+func (c Click) Scoped() bool {
+	return false
 }
 
 func (c Click) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
@@ -26,3 +30,9 @@ func (c Click) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value,
 		}),
 	)
 }
+
+func (c Click) BeforeRender(scope *tango.Scope) {}
+
+func (c Click) Render() string { return "" }
+
+func (c Click) AfterRender(scope *tango.Scope) {}

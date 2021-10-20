@@ -8,12 +8,16 @@ import (
 
 type Repeat struct{}
 
+func (r Repeat) Name() string {
+	return "tng-repeat"
+}
+
 func (r Repeat) Kind() tango.Kind {
 	return tango.Attribute
 }
 
-func (r Repeat) Name() string {
-	return "tng-repeat"
+func (r Repeat) Scoped() bool {
+	return false
 }
 
 func (r Repeat) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
@@ -66,3 +70,9 @@ func (r Repeat) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value
 		panic(r.Name() + " attribute not set")
 	}
 }
+
+func (r Repeat) BeforeRender(scope *tango.Scope) {}
+
+func (r Repeat) Render() string { return "" }
+
+func (r Repeat) AfterRender(scope *tango.Scope) {}
