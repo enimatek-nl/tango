@@ -16,7 +16,7 @@ func (r Repeat) Name() string {
 	return "tng-repeat"
 }
 
-func (r Repeat) Callback(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
+func (r Repeat) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
 	if valueOf, e := attrs[r.Name()]; e {
 		id := "random" // TODO: gen some id
 		parts := strings.Split(valueOf.String(), " in ")

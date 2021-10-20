@@ -17,7 +17,7 @@ func (r Router) Name() string {
 	return "Router"
 }
 
-func (r Router) Callback(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
+func (r Router) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
 	self.Root = node
 	if p, e := attrs[PATH]; e {
 		js.Global().Get("window").Get("location").Set("hash", "#!"+p.String())

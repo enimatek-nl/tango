@@ -20,6 +20,7 @@ type Scope struct {
 	model         SModel
 	parent        *Scope
 	subscriptions []*Subscription
+	children      map[string]*Scope
 }
 
 func NewScope(parent *Scope) *Scope {

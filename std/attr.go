@@ -16,7 +16,7 @@ func (a Attr) Name() string {
 	return "tng-attr"
 }
 
-func (a Attr) Callback(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
+func (a Attr) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
 	if valueOf, e := attrs[a.Name()]; e {
 		onlyWhen := true
 		parts := strings.Split(valueOf.String(), " when ")

@@ -15,7 +15,7 @@ func (c Click) Name() string {
 	return "tng-click"
 }
 
-func (c Click) Callback(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
+func (c Click) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
 	node.Call("addEventListener", "click", js.FuncOf(
 		func(this js.Value, args []js.Value) interface{} {
 			args[0].Call("stopPropagation")
