@@ -7,20 +7,16 @@ import (
 
 type Model struct{}
 
-func (m Model) Name() string {
-	return "tng-model"
+func (m Model) Config() tango.ComponentConfig {
+	return tango.ComponentConfig{
+		Name:   "tng-model",
+		Kind:   tango.Attribute,
+		Scoped: false,
+	}
 }
 
-func (m Model) Kind() tango.Kind {
-	return tango.Attribute
-}
-
-func (m Model) Scoped() bool {
-	return false
-}
-
-func (m Model) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
-	if valueOf, e := attrs[m.Name()]; e {
+func (m Model) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) bool {
+	if valueOf, e := attrs[m.Config().Name]; e {
 		act := "keyup"
 		// TODO: more exceptions needed?
 		if node.Get("nodeName").String() == "SELECT" {
@@ -34,12 +30,11 @@ func (m Model) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value,
 			}),
 		)
 	} else {
-		panic(m.Name() + " attribute not set")
+		panic(m.Config().Name + " attribute not set")
 	}
+	return true
 }
 
-func (m Model) BeforeRender(scope *tango.Scope) {}
+func (m Model) Hook(scope *tango.Scope, hook tango.ComponentHook) {}
 
 func (m Model) Render() string { return "" }
-
-func (m Model) AfterRender(scope *tango.Scope) {}

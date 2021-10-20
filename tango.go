@@ -22,14 +22,14 @@ type Route struct {
 type Tango struct {
 	scope      *Scope
 	components []Component
-	routes     map[string]Route
+	routes     map[string]*Route
 	Root       js.Value
 }
 
 func New() *Tango {
 	return &Tango{
 		scope:  NewScope(nil),
-		routes: make(map[string]Route),
+		routes: make(map[string]*Route),
 	}
 }
 
@@ -44,7 +44,7 @@ func (t *Tango) GenId() string {
 }
 
 func (t *Tango) AddRoute(path string, component Component) {
-	t.routes[path] = Route{
+	t.routes[path] = &Route{
 		root: component,
 	}
 }
@@ -70,10 +70,10 @@ func (t *Tango) Navigate(path string) {
 			route.scope = NewScope(t.scope)
 			route.root.Constructor(t, route.scope, t.Root, nil, nil)
 		}
-		route.root.BeforeRender(route.scope)
+		route.root.Hook(route.scope, BeforeRender)
 		t.Root.Set("innerHTML", route.root.Render())
 		t.finish(route.scope, t.Root)
-		route.root.AfterRender(route.scope)
+		route.root.Hook(route.scope, AfterRender)
 	} else {
 		panic("route not found")
 	}
@@ -91,16 +91,20 @@ func (t *Tango) finish(scope *Scope, node js.Value) {
 }
 
 func (t *Tango) Compile(scope *Scope, node js.Value, queue *Queue) {
+	stop := false
 	if !node.Equal(t.Root) {
-		t.exec(scope, node, queue)
+		stop = t.exec(scope, node, queue)
 	}
-	children := node.Get("children")
-	for i := 0; i < children.Length(); i++ {
-		t.Compile(scope, children.Index(i), queue)
+	if !stop {
+		children := node.Get("children")
+		for i := 0; i < children.Length(); i++ {
+			t.Compile(scope, children.Index(i), queue)
+		}
 	}
 }
 
-func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) {
+func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
+	stop := false
 	m := make(map[string]js.Value)
 
 	// collect all attributes in a single map
@@ -111,22 +115,11 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) {
 		m[name.String()] = val
 	}
 
-	// retrieve the node element's id
-	construct := false
-	var id string
-	if n, e := m["tng-id"]; !e {
-		id = t.GenId()
-		node.Call("setAttribute", "tng-id", id)
-		construct = true
-	} else {
-		id = n.String()
-	}
-
 	// check for unique tagName directive matches...
 	var component Component = nil
 	tn := node.Get("tagName").String()
 	for _, c := range t.components {
-		if c.Kind() == Tag && strings.ToLower(c.Name()) == strings.ToLower(tn) {
+		if c.Config().Kind == Tag && strings.ToLower(c.Config().Name) == strings.ToLower(tn) {
 			component = c
 			break
 		}
@@ -135,8 +128,8 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) {
 	// if tagName is a known HTML5 tag, process attribute directives
 	if component == nil {
 		for _, c := range t.components {
-			if _, e := m[c.Name()]; e {
-				if c.Kind() == Attribute {
+			if _, e := m[c.Config().Name]; e {
+				if c.Config().Kind == Attribute {
 					component = c
 				}
 			}
@@ -145,8 +138,19 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) {
 
 	// render the component
 	if component != nil {
+		// retrieve the node element's id
+		construct := false
+		var id string
+		if n, e := m["tng-id"]; !e {
+			id = t.GenId()
+			node.Call("setAttribute", "tng-id", id)
+			construct = true
+		} else {
+			id = n.String()
+		}
+
 		var local *Scope
-		if component.Scoped() {
+		if component.Config().Scoped {
 			if c, e := scope.children[id]; !e {
 				local = NewScope(scope)
 				scope.children[id] = local
@@ -157,12 +161,13 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) {
 			local = scope
 		}
 		if construct {
-			component.Constructor(t, local, node, m, queue)
+			stop = !component.Constructor(t, local, node, m, queue)
 		}
-		if component.Kind() == Tag {
-			component.BeforeRender(local)
+		if component.Config().Kind == Tag {
+			component.Hook(local, BeforeRender)
 			node.Set("innerHTML", component.Render())
-			component.AfterRender(local)
+			component.Hook(local, AfterRender)
 		}
 	}
+	return stop
 }

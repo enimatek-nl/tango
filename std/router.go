@@ -9,19 +9,15 @@ type Router struct{}
 
 const PATH = "path"
 
-func (r Router) Name() string {
-	return "Router"
+func (r Router) Config() tango.ComponentConfig {
+	return tango.ComponentConfig{
+		Name:   "Router",
+		Kind:   tango.Tag,
+		Scoped: false,
+	}
 }
 
-func (r Router) Kind() tango.Kind {
-	return tango.Tag
-}
-
-func (r Router) Scoped() bool {
-	return false
-}
-
-func (r Router) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
+func (r Router) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) bool {
 	self.Root = node
 	if p, e := attrs[PATH]; e {
 		js.Global().Get("window").Get("location").Set("hash", "#!"+p.String())
@@ -31,10 +27,9 @@ func (r Router) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value
 	} else {
 		panic("don't forget to set a 'path=' attribute")
 	}
+	return true
 }
 
-func (r Router) BeforeRender(scope *tango.Scope) {}
+func (r Router) Hook(scope *tango.Scope, hook tango.ComponentHook) {}
 
 func (r Router) Render() string { return "" }
-
-func (r Router) AfterRender(scope *tango.Scope) {}

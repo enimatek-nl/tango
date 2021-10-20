@@ -9,12 +9,22 @@ const (
 	Tag
 )
 
+type ComponentHook int
+
+const (
+	BeforeRender ComponentHook = iota
+	AfterRender
+)
+
+type ComponentConfig struct {
+	Name   string
+	Kind   Kind
+	Scoped bool
+}
+
 type Component interface {
-	Name() string
-	Kind() Kind
-	Scoped() bool
-	Constructor(self *Tango, scope *Scope, node js.Value, attrs map[string]js.Value, queue *Queue)
-	BeforeRender(scope *Scope)
+	Config() ComponentConfig
+	Constructor(self *Tango, scope *Scope, node js.Value, attrs map[string]js.Value, queue *Queue) bool
+	Hook(scope *Scope, hook ComponentHook)
 	Render() string
-	AfterRender(scope *Scope)
 }

@@ -118,14 +118,7 @@ func (s *Scope) Digest() {
 }
 
 func (s *Scope) Clone() *Scope {
-	clone := &Scope{
-		model: SModel{
-			values:    make(map[string]js.Value),
-			functions: make(map[string]func(value js.Value, scope *Scope)),
-		},
-		parent: s,
-	}
-	return clone
+	return NewScope(s)
 }
 
 func (s *Scope) AddSubscription(name string, f func(scope *Scope, value js.Value)) {

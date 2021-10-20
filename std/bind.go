@@ -7,20 +7,16 @@ import (
 
 type Bind struct{}
 
-func (b Bind) Name() string {
-	return "tng-bind"
+func (b Bind) Config() tango.ComponentConfig {
+	return tango.ComponentConfig{
+		Name:   "tng-bind",
+		Kind:   tango.Attribute,
+		Scoped: false,
+	}
 }
 
-func (b Bind) Kind() tango.Kind {
-	return tango.Attribute
-}
-
-func (b Bind) Scoped() bool {
-	return false
-}
-
-func (b Bind) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
-	if valueOf, e := attrs[b.Name()]; e {
+func (b Bind) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) bool {
+	if valueOf, e := attrs[b.Config().Name]; e {
 		if _, e := scope.Get(valueOf.String()); e {
 			scope.AddSubscription(valueOf.String(), func(scope *tango.Scope, value js.Value) {
 				// TODO: based on element type
@@ -29,12 +25,11 @@ func (b Bind) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, 
 			})
 		}
 	} else {
-		panic(b.Name() + " attribute not set")
+		panic(b.Config().Name + " attribute not set")
 	}
+	return true
 }
 
-func (b Bind) BeforeRender(scope *tango.Scope) {}
+func (b Bind) Hook(scope *tango.Scope, hook tango.ComponentHook) {}
 
 func (b Bind) Render() string { return "" }
-
-func (b Bind) AfterRender(scope *tango.Scope) {}

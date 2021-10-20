@@ -8,20 +8,16 @@ import (
 
 type Attr struct{}
 
-func (a Attr) Name() string {
-	return "tng-attr"
+func (a Attr) Config() tango.ComponentConfig {
+	return tango.ComponentConfig{
+		Name:   "tng-attr",
+		Kind:   tango.Attribute,
+		Scoped: false,
+	}
 }
 
-func (a Attr) Kind() tango.Kind {
-	return tango.Attribute
-}
-
-func (a Attr) Scoped() bool {
-	return false
-}
-
-func (a Attr) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
-	if valueOf, e := attrs[a.Name()]; e {
+func (a Attr) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) bool {
+	if valueOf, e := attrs[a.Config().Name]; e {
 		onlyWhen := true
 		parts := strings.Split(valueOf.String(), " when ")
 		if len(parts) == 1 {
@@ -50,12 +46,11 @@ func (a Attr) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, 
 			panic("can't parse '" + valueOf.String() + "'")
 		}
 	} else {
-		panic(a.Name() + " attribute not set")
+		panic(a.Config().Name + " attribute not set")
 	}
+	return true
 }
 
-func (a Attr) BeforeRender(scope *tango.Scope) {}
+func (a Attr) Hook(scope *tango.Scope, hook tango.ComponentHook) {}
 
 func (a Attr) Render() string { return "" }
-
-func (a Attr) AfterRender(scope *tango.Scope) {}

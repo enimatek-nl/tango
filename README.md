@@ -17,9 +17,11 @@ Where Tangu is nim 100% transpiled Javascript, Tango is golang compiled to WASM.
 ### Get Started
 
 ```go
+func main() {
+
     tg := tango.New()
-    // add standard directives
-    tg.AddDirective(
+    
+    tg.AddComponents(
         std.Router{},
         std.Repeat{},
         std.Click{},
@@ -27,17 +29,36 @@ Where Tangu is nim 100% transpiled Javascript, Tango is golang compiled to WASM.
         std.Change{},
         std.Model{},
         std.Attr{})
-    // add a default path
-    tg.AddRoute("/", &tango.Controller{
-        Template: func () string {
-        // return some html 
-        },
-        Work: func (scope *core.Scope, lifecycle core.Lifecycle) {
-        // add logic to the scope
-        }
-    })
-    // bootstrap tango
+    
+    tg.AddRoute("/", &ViewController{})
+    
     tg.Bootstrap()
+
+}
+```
+
+```go
+type ViewController struct { }
+
+func (v ViewController) Config() tango.ComponentConfig {
+    return tango.ComponentConfig{
+        Name:   "ViewController",
+        Kind:   tango.Tag,
+        Scoped: true,
+    }
+}
+
+func (v ViewController) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) bool {
+    scope.AddFunc("clickFunc", func(value js.Value, scope *tango.Scope) {
+        println("hello world!")
+    })
+}
+
+func (v ViewController) Hook(scope *tango.Scope, hook tango.ComponentHook) { }
+
+func (v ViewController) Render() string {
+    return `<button tng-click="clickFunc">click me!</button>`   
+}
 ```
 
 _This project is a WIP..._
