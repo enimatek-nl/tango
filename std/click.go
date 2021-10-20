@@ -24,6 +24,7 @@ func (c Click) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value,
 		func(this js.Value, args []js.Value) interface{} {
 			args[0].Call("stopPropagation")
 			args[0].Call("preventDefault")
+			println("clicked: " + c.Name())
 			scope.Exec(node, scope, attrs[c.Name()])
 			scope.Digest()
 			return nil

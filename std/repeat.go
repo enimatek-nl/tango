@@ -22,7 +22,7 @@ func (r Repeat) Scoped() bool {
 
 func (r Repeat) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) {
 	if valueOf, e := attrs[r.Name()]; e {
-		id := "random" // TODO: gen some id
+		id := self.GenId()
 		parts := strings.Split(valueOf.String(), " in ")
 		parentNode := node.Get("parentNode")
 		document := js.Global().Get("document")
