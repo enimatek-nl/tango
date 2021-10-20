@@ -66,7 +66,10 @@ func (t *Tango) Bootstrap() {
 
 func (t *Tango) Navigate(path string) {
 	if route, exists := t.routes[path]; exists {
-		route.root.Constructor(t, route.scope, t.Root, nil, nil)
+		if route.scope == nil {
+			route.scope = NewScope(t.scope)
+			route.root.Constructor(t, route.scope, t.Root, nil, nil)
+		}
 		route.root.BeforeRender(route.scope)
 		t.Root.Set("innerHTML", route.root.Render())
 		t.finish(route.scope, t.Root)
