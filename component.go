@@ -5,8 +5,9 @@ import "syscall/js"
 type Kind int
 
 const (
-	Attribute Kind = iota
-	Tag
+	Controller Kind = iota // Controller has ComponentHook hooks
+	Attribute              // Attribute matches html-attributes and does not Render()
+	Tag                    // Tag adds a custom tag to html and calls Render() without ComponentHook
 )
 
 type ComponentHook int
@@ -23,8 +24,8 @@ type ComponentConfig struct {
 }
 
 type Component interface {
-	Config() ComponentConfig
-	Constructor(self *Tango, scope *Scope, node js.Value, attrs map[string]js.Value, queue *Queue) bool
-	Hook(scope *Scope, hook ComponentHook)
-	Render() string
+	Config() ComponentConfig                                                                            // ComponentConfig describes the details of the component
+	Constructor(self *Tango, scope *Scope, node js.Value, attrs map[string]js.Value, queue *Queue) bool // return true to continue with construct on children
+	Hook(scope *Scope, hook ComponentHook)                                                              // used with a Controller Kind
+	Render() string                                                                                     // return a template of innerHTML for Controller and Tag
 }

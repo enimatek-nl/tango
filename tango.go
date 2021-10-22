@@ -3,7 +3,6 @@ package tango
 import (
 	"crypto/rand"
 	"fmt"
-	"log"
 	"strings"
 	"syscall/js"
 )
@@ -13,40 +12,27 @@ type Queue struct {
 	Post   []func()
 }
 
-type Route struct {
-	// TODO: add guards etc.
-	scope *Scope
-	root  Component
-}
-
 type Tango struct {
 	scope      *Scope
 	components []Component
-	routes     map[string]*Route
+	routes     []Route
 	Root       js.Value
 }
 
 func New() *Tango {
 	return &Tango{
-		scope:  NewScope(nil),
-		routes: make(map[string]*Route),
+		scope: NewScope(nil),
 	}
 }
 
 func (t *Tango) GenId() string {
-	b := make([]byte, 16)
-	_, err := rand.Read(b)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return fmt.Sprintf("%x-%x-%x-%x-%x",
-		b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	b := make([]byte, 8)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }
 
-func (t *Tango) AddRoute(path string, component Component) {
-	t.routes[path] = &Route{
-		root: component,
-	}
+func (t *Tango) AddRoute(routes ...Route) {
+	t.routes = routes
 }
 
 func (t *Tango) AddComponents(components ...Component) {
@@ -64,8 +50,34 @@ func (t *Tango) Bootstrap() {
 	t.finish(t.scope, js.Global().Get("document").Call("getElementsByTagName", "body").Index(0))
 }
 
+func (t *Tango) matchRoute(path string) (route *Route, params map[string]string) {
+	params = make(map[string]string)
+	splt := strings.Split(path, "/")
+	for _, r := range t.routes {
+		if len(splt) == len(r.Path) {
+			for i, s := range splt {
+				if r.Path[i].Match && r.Path[i].Name == s {
+					route = &r
+				} else if r.Path[i].Match && r.Path[i].Name != s {
+					route = nil
+					break
+				} else {
+					params[r.Path[i].Name] = s
+				}
+			}
+			if route != nil {
+				break
+			}
+		} else {
+			continue
+		}
+	}
+	return
+}
+
 func (t *Tango) Navigate(path string) {
-	if route, exists := t.routes[path]; exists {
+	route, _ := t.matchRoute(path) // TODO: parameters -> send to hook? how?
+	if route != nil {
 		if route.scope == nil {
 			route.scope = NewScope(t.scope)
 			route.root.Constructor(t, route.scope, t.Root, nil, nil)
@@ -163,10 +175,14 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 		if construct {
 			stop = !component.Constructor(t, local, node, m, queue)
 		}
-		if component.Config().Kind == Tag {
-			component.Hook(local, BeforeRender)
+		if component.Config().Kind == Tag || component.Config().Kind == Controller {
+			if component.Config().Kind == Controller {
+				component.Hook(local, BeforeRender)
+			}
 			node.Set("innerHTML", component.Render())
-			component.Hook(local, AfterRender)
+			if component.Config().Kind == Controller {
+				component.Hook(local, AfterRender)
+			}
 		}
 	}
 	return stop

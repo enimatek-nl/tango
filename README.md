@@ -30,7 +30,7 @@ func main() {
         std.Model{},
         std.Attr{})
     
-    tg.AddRoute("/", &ViewController{})
+    tg.AddRoute(tango.NewRoute("/", &ViewController{}))
     
     tg.Bootstrap()
 
@@ -43,15 +43,17 @@ type ViewController struct { }
 func (v ViewController) Config() tango.ComponentConfig {
     return tango.ComponentConfig{
         Name:   "ViewController",
-        Kind:   tango.Tag,
+        Kind:   tango.Controller,
         Scoped: true,
     }
 }
 
+func (v *ViewController) click(value js.Value, scope *tango.Scope) {
+    println("hello world!")
+}
+
 func (v ViewController) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) bool {
-    scope.AddFunc("clickFunc", func(value js.Value, scope *tango.Scope) {
-        println("hello world!")
-    })
+    scope.AddFunc("clickFunc", v.click)
 }
 
 func (v ViewController) Hook(scope *tango.Scope, hook tango.ComponentHook) { }
