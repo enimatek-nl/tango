@@ -30,6 +30,6 @@ func (b Bind) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, 
 	return true
 }
 
-func (b Bind) Hook(scope *tango.Scope, hook tango.ComponentHook) {}
+func (b Bind) Hook(scope *tango.Scope, attrs map[string]string, hook tango.ComponentHook) {}
 
 func (b Bind) Render() string { return "" }

@@ -76,16 +76,16 @@ func (t *Tango) matchRoute(path string) (route *Route, params map[string]string)
 }
 
 func (t *Tango) Navigate(path string) {
-	route, _ := t.matchRoute(path) // TODO: parameters -> send to hook? how?
+	route, attrs := t.matchRoute(path)
 	if route != nil {
 		if route.scope == nil {
 			route.scope = NewScope(t.scope)
 			route.root.Constructor(t, route.scope, t.Root, nil, nil)
 		}
-		route.root.Hook(route.scope, BeforeRender)
+		route.root.Hook(route.scope, attrs, BeforeRender)
 		t.Root.Set("innerHTML", route.root.Render())
 		t.finish(route.scope, t.Root)
-		route.root.Hook(route.scope, AfterRender)
+		route.root.Hook(route.scope, attrs, AfterRender)
 	} else {
 		panic("route not found")
 	}
@@ -175,14 +175,10 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 		if construct {
 			stop = !component.Constructor(t, local, node, m, queue)
 		}
-		if component.Config().Kind == Tag || component.Config().Kind == Controller {
-			if component.Config().Kind == Controller {
-				component.Hook(local, BeforeRender)
-			}
+		if component.Config().Kind == Tag {
+			component.Hook(local, nil, BeforeRender)
 			node.Set("innerHTML", component.Render())
-			if component.Config().Kind == Controller {
-				component.Hook(local, AfterRender)
-			}
+			component.Hook(local, nil, AfterRender)
 		}
 	}
 	return stop

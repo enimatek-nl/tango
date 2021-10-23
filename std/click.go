@@ -29,6 +29,6 @@ func (c Click) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value,
 	return true
 }
 
-func (c Click) Hook(scope *tango.Scope, hook tango.ComponentHook) {}
+func (c Click) Hook(scope *tango.Scope, attrs map[string]string, hook tango.ComponentHook) {}
 
 func (c Click) Render() string { return "" }

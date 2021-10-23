@@ -68,6 +68,6 @@ func (r Repeat) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value
 	return false
 }
 
-func (r Repeat) Hook(scope *tango.Scope, hook tango.ComponentHook) {}
+func (r Repeat) Hook(scope *tango.Scope, attrs map[string]string, hook tango.ComponentHook) {}
 
 func (r Repeat) Render() string { return "" }
