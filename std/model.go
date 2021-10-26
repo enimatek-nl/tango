@@ -15,26 +15,27 @@ func (m Model) Config() tango.ComponentConfig {
 	}
 }
 
-func (m Model) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) bool {
-	if valueOf, e := attrs[m.Config().Name]; e {
-		act := "keyup"
-		// TODO: more exceptions needed?
-		if node.Get("nodeName").String() == "SELECT" {
-			act = "change"
+func (m Model) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHook, attrs map[string]string, node js.Value, queue *tango.Queue) bool {
+	switch hook {
+	case tango.Construct:
+		if valueOf, e := attrs[m.Config().Name]; e {
+			act := "keyup"
+			// TODO: more exceptions needed?
+			if node.Get("nodeName").String() == "SELECT" {
+				act = "change"
+			}
+			node.Call("addEventListener", act, js.FuncOf(
+				func(this js.Value, args []js.Value) interface{} {
+					scope.Add(valueOf, node.Get("value"))
+					scope.Digest()
+					return nil
+				}),
+			)
+		} else {
+			panic(m.Config().Name + " attribute not set")
 		}
-		node.Call("addEventListener", act, js.FuncOf(
-			func(this js.Value, args []js.Value) interface{} {
-				scope.Add(valueOf.String(), node.Get("value"))
-				scope.Digest()
-				return nil
-			}),
-		)
-	} else {
-		panic(m.Config().Name + " attribute not set")
 	}
 	return true
 }
-
-func (m Model) Hook(scope *tango.Scope, attrs map[string]string, hook tango.ComponentHook) {}
 
 func (m Model) Render() string { return "" }

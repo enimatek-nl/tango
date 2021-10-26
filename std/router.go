@@ -17,19 +17,20 @@ func (r Router) Config() tango.ComponentConfig {
 	}
 }
 
-func (r Router) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) bool {
-	self.Root = node
-	if p, e := attrs[PATH]; e {
-		js.Global().Get("window").Get("location").Set("hash", "#!"+p.String())
-		queue.Post = append(queue.Post, func() {
-			self.Navigate(p.String())
-		})
-	} else {
-		panic("don't forget to set a 'path=' attribute")
+func (r Router) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHook, attrs map[string]string, node js.Value, queue *tango.Queue) bool {
+	switch hook {
+	case tango.Construct:
+		self.Root = node
+		if p, e := attrs[PATH]; e {
+			js.Global().Get("window").Get("location").Set("hash", "#!"+p)
+			queue.Post = append(queue.Post, func() {
+				self.Navigate(p)
+			})
+		} else {
+			panic("don't forget to set a 'path=' attribute")
+		}
 	}
 	return true
 }
-
-func (r Router) Hook(scope *tango.Scope, attrs map[string]string, hook tango.ComponentHook) {}
 
 func (r Router) Render() string { return "" }

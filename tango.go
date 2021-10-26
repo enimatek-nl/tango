@@ -78,14 +78,15 @@ func (t *Tango) matchRoute(path string) (route *Route, params map[string]string)
 func (t *Tango) Navigate(path string) {
 	route, attrs := t.matchRoute(path)
 	if route != nil {
+		construct := false
 		if route.scope == nil {
 			route.scope = NewScope(t.scope)
-			route.root.Constructor(t, route.scope, t.Root, nil, nil)
+			construct = true
 		}
-		route.root.Hook(route.scope, attrs, BeforeRender)
-		t.Root.Set("innerHTML", route.root.Render())
+		t.render(route.root, construct, route.scope, attrs, t.Root, nil)
+		route.root.Hook(t, route.scope, AfterRender, attrs, t.Root, nil)
 		t.finish(route.scope, t.Root)
-		route.root.Hook(route.scope, attrs, AfterRender)
+		route.root.Hook(t, route.scope, BeforeRender, attrs, t.Root, nil)
 	} else {
 		panic("route not found")
 	}
@@ -117,14 +118,14 @@ func (t *Tango) Compile(scope *Scope, node js.Value, queue *Queue) {
 
 func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 	stop := false
-	m := make(map[string]js.Value)
+	m := make(map[string]string)
 
 	// collect all attributes in a single map
 	p := node.Get("attributes")
 	for j := 0; j < p.Length(); j++ {
 		name := p.Index(j).Get("nodeName")
 		val := p.Index(j).Get("nodeValue")
-		m[name.String()] = val
+		m[name.String()] = val.String()
 	}
 
 	// check for unique tagName directive matches...
@@ -158,7 +159,7 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 			node.Call("setAttribute", "tng-id", id)
 			construct = true
 		} else {
-			id = n.String()
+			id = n
 		}
 
 		var local *Scope
@@ -172,14 +173,17 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 		} else {
 			local = scope
 		}
-		if construct {
-			stop = !component.Constructor(t, local, node, m, queue)
-		}
-		if component.Config().Kind == Tag {
-			component.Hook(local, nil, BeforeRender)
-			node.Set("innerHTML", component.Render())
-			component.Hook(local, nil, AfterRender)
-		}
+		stop = t.render(component, construct, local, m, node, queue)
 	}
 	return stop
+}
+
+func (t *Tango) render(component Component, construct bool, scope *Scope, attr map[string]string, node js.Value, queue *Queue) (stop bool) {
+	if construct {
+		stop = !component.Hook(t, scope, Construct, attr, node, queue)
+	}
+	if component.Config().Kind != Attribute {
+		node.Set("innerHTML", component.Render())
+	}
+	return
 }

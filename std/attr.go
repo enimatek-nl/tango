@@ -16,41 +16,42 @@ func (a Attr) Config() tango.ComponentConfig {
 	}
 }
 
-func (a Attr) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) bool {
-	if valueOf, e := attrs[a.Config().Name]; e {
-		onlyWhen := true
-		parts := strings.Split(valueOf.String(), " when ")
-		if len(parts) == 1 {
-			parts = strings.Split(valueOf.String(), " is ")
-			onlyWhen = false
-		}
+func (a Attr) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHook, attrs map[string]string, node js.Value, queue *tango.Queue) bool {
+	switch hook {
+	case tango.Construct:
+		if valueOf, e := attrs[a.Config().Name]; e {
+			onlyWhen := true
+			parts := strings.Split(valueOf, " when ")
+			if len(parts) == 1 {
+				parts = strings.Split(valueOf, " is ")
+				onlyWhen = false
+			}
 
-		if len(parts) == 2 {
-			if _, e := scope.Get(parts[1]); e {
-				handle := func(v js.Value) {
-					if onlyWhen {
-						if v.Bool() {
-							node.Call("setAttribute", parts[0], js.ValueOf(""))
+			if len(parts) == 2 {
+				if _, e := scope.Get(parts[1]); e {
+					handle := func(v js.Value) {
+						if onlyWhen {
+							if v.Bool() {
+								node.Call("setAttribute", parts[0], js.ValueOf(""))
+							} else {
+								node.Call("removeAttribute", parts[0])
+							}
 						} else {
-							node.Call("removeAttribute", parts[0])
+							node.Call("setAttribute", parts[0], v)
 						}
-					} else {
-						node.Call("setAttribute", parts[0], v)
 					}
+					scope.AddSubscription(parts[1], func(scope *tango.Scope, value js.Value) {
+						handle(value)
+					})
 				}
-				scope.AddSubscription(parts[1], func(scope *tango.Scope, value js.Value) {
-					handle(value)
-				})
+			} else {
+				panic("can't parse '" + valueOf + "'")
 			}
 		} else {
-			panic("can't parse '" + valueOf.String() + "'")
+			panic(a.Config().Name + " attribute not set")
 		}
-	} else {
-		panic(a.Config().Name + " attribute not set")
 	}
 	return true
 }
-
-func (a Attr) Hook(scope *tango.Scope, attrs map[string]string, hook tango.ComponentHook) {}
 
 func (a Attr) Render() string { return "" }
