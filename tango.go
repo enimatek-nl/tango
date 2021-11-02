@@ -31,7 +31,7 @@ func (t *Tango) GenId() string {
 	return fmt.Sprintf("%x", b)
 }
 
-func (t *Tango) AddRoute(routes ...Route) {
+func (t *Tango) AddRoutes(routes ...Route) {
 	t.routes = routes
 }
 
@@ -88,7 +88,7 @@ func (t *Tango) Navigate(path string) {
 		t.finish(route.scope, t.Root)
 		route.root.Hook(t, route.scope, BeforeRender, attrs, t.Root, nil)
 	} else {
-		panic("route not found")
+		println("route not found: " + path)
 	}
 }
 

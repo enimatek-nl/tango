@@ -30,7 +30,7 @@ func (r Repeat) Hook(self *tango.Tango, scope *tango.Scope, hook tango.Component
 			parentNode.Call("replaceChild", placeholder, node)
 
 			if _, e := scope.Get(parts[1]); e {
-				scope.AddSubscription(parts[1], func(scope *tango.Scope, value js.Value) {
+				scope.Subscribe(parts[1], func(scope *tango.Scope, value js.Value) {
 					var nominated []js.Value
 					children := parentNode.Get("children")
 					for j := 0; j < children.Length(); j++ {
@@ -56,7 +56,7 @@ func (r Repeat) Hook(self *tango.Tango, scope *tango.Scope, hook tango.Component
 
 						childScope := scope.Clone()
 						item := value.Index(i)
-						childScope.Add(parts[0], item)
+						childScope.Set(parts[0], item)
 						var childQueue tango.Queue
 
 						self.Compile(childScope, clone, &childQueue)

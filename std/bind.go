@@ -20,7 +20,7 @@ func (b Bind) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHo
 	case tango.Construct:
 		if valueOf, e := attrs[b.Config().Name]; e {
 			if _, e := scope.Get(valueOf); e {
-				scope.AddSubscription(valueOf, func(scope *tango.Scope, value js.Value) {
+				scope.Subscribe(valueOf, func(scope *tango.Scope, value js.Value) {
 					// TODO: based on element type
 					node.Set("innerHTML", value)
 					node.Set("value", value)

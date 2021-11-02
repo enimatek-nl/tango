@@ -40,7 +40,7 @@ func (a Attr) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHo
 							node.Call("setAttribute", parts[0], v)
 						}
 					}
-					scope.AddSubscription(parts[1], func(scope *tango.Scope, value js.Value) {
+					scope.Subscribe(parts[1], func(scope *tango.Scope, value js.Value) {
 						handle(value)
 					})
 				}

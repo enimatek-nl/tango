@@ -26,7 +26,7 @@ func (m Model) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentH
 			}
 			node.Call("addEventListener", act, js.FuncOf(
 				func(this js.Value, args []js.Value) interface{} {
-					scope.Add(valueOf, node.Get("value"))
+					scope.Set(valueOf, node.Get("value"))
 					scope.Digest()
 					return nil
 				}),

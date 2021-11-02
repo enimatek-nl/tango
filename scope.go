@@ -33,11 +33,11 @@ func NewScope(parent *Scope) *Scope {
 	}
 }
 
-func (s *Scope) AddFunc(name string, f func(value js.Value, scope *Scope)) {
+func (s *Scope) SetFunc(name string, f func(value js.Value, scope *Scope)) {
 	s.model.functions[name] = f
 }
 
-func (s *Scope) Add(name string, value js.Value) {
+func (s *Scope) Set(name string, value js.Value) {
 	parts := strings.Split(name, ".")
 	last := len(parts) - 1
 	if len(parts) == 1 {
@@ -121,13 +121,12 @@ func (s *Scope) Clone() *Scope {
 	return NewScope(s)
 }
 
-func (s *Scope) AddSubscription(name string, f func(scope *Scope, value js.Value)) {
+func (s *Scope) Subscribe(name string, f func(scope *Scope, value js.Value)) {
 	s.subscriptions = append(s.subscriptions, &Subscription{
 		name:     name,
 		callback: f,
 		previous: js.Value{},
 	})
-	println("subscription added for", name)
 }
 
 func (s *Scope) Destroy() {

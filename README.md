@@ -44,7 +44,7 @@ func (v ViewController) Config() tango.ComponentConfig {
     return tango.ComponentConfig{
         Name:   "ViewController",
         Kind:   tango.Controller,
-        Scoped: true,
+        Scoped: false,
     }
 }
 
@@ -52,15 +52,20 @@ func (v *ViewController) click(value js.Value, scope *tango.Scope) {
     println("hello world!")
 }
 
-func (v ViewController) Constructor(self *tango.Tango, scope *tango.Scope, node js.Value, attrs map[string]js.Value, queue *tango.Queue) bool {
-    scope.AddFunc("clickFunc", v.click)
+func (v ViewController) HookHook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHook, attrs map[string]string, node js.Value, queue *tango.Queue) bool {
+    switch hook {
+    case tango.Construct:
+        scope.SetFunc("clickFunc", v.click)
+    }
+    return true
 }
-
-func (v ViewController) Hook(scope *tango.Scope, hook tango.ComponentHook) { }
 
 func (v ViewController) Render() string {
     return `<button tng-click="clickFunc">click me!</button>`   
 }
 ```
+
+### How to use this Web Framework (SPA) & Backend API as a single project?
+Check out this [todo example project](https://github.com/enimatek-nl/tango-example) as a reference implementation including Makefile and project structure.
 
 _This project is a WIP..._

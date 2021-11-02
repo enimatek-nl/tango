@@ -26,7 +26,6 @@ type ComponentConfig struct {
 
 type Component interface {
 	Config() ComponentConfig // ComponentConfig describes the details of the component
-	// Constructor(self *Tango, scope *Scope, node js.Value, attrs map[string]js.Value, queue *Queue) bool // return true to continue with construct on children
 	Hook(self *Tango, scope *Scope, hook ComponentHook, attrs map[string]string, node js.Value, queue *Queue) bool
 	Render() string // return a template of innerHTML for Controller and Tag
 }
