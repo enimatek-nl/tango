@@ -15,9 +15,14 @@ var (
 	array  = js.Global().Get("Array")
 )
 
-func ValueOf(in interface{}) js.Value {
-	r := reflect.ValueOf(in)
-	return valueOf(r)
+func ValueOf(i interface{}) js.Value {
+	switch i.(type) {
+	case nil, js.Value, js.Wrapper:
+		return js.ValueOf(i)
+	default:
+		v := reflect.ValueOf(i)
+		return valueOf(v)
+	}
 }
 
 func valueOf(v reflect.Value) js.Value {

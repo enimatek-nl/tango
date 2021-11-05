@@ -37,11 +37,11 @@ func (s *Scope) SetFunc(name string, f func(value js.Value, scope *Scope)) {
 	s.model.functions[name] = f
 }
 
-func (s *Scope) Set(name string, value js.Value) {
+func (s *Scope) Set(name string, value interface{}) {
 	parts := strings.Split(name, ".")
 	last := len(parts) - 1
 	if len(parts) == 1 {
-		s.model.values[name] = value
+		s.model.values[name] = ValueOf(value)
 	} else {
 		exists := false
 		var id string
