@@ -152,7 +152,3 @@ func (s *Scope) Root() *Scope {
 		return s
 	}
 }
-
-func (s Scope) Nav(path string) {
-	js.Global().Get("window").Get("location").Set("hash", "!"+path) // unsafe
-}

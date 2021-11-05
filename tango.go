@@ -43,7 +43,7 @@ func (t *Tango) Bootstrap() {
 	js.Global().Get("window").Call("addEventListener", "hashchange", js.FuncOf(
 		func(this js.Value, args []js.Value) interface{} {
 			hash := js.Global().Get("window").Get("location").Get("hash").String()
-			defer t.Navigate(hash[2:])
+			defer t.navigate(hash[2:])
 			return nil
 		},
 	))
@@ -75,7 +75,7 @@ func (t *Tango) matchRoute(path string) (route *Route, params map[string]string)
 	return
 }
 
-func (t *Tango) Navigate(path string) {
+func (t *Tango) navigate(path string) {
 	route, attrs := t.matchRoute(path)
 	if route != nil {
 		construct := false
@@ -83,13 +83,24 @@ func (t *Tango) Navigate(path string) {
 			route.scope = NewScope(t.scope)
 			construct = true
 		}
-		t.render(route.root, construct, route.scope, attrs, t.Root, nil)
-		route.root.Hook(t, route.scope, AfterRender, attrs, t.Root, nil)
+		hook := Hook{
+			Self:  t,
+			Scope: route.scope,
+			Attrs: attrs,
+			Node:  t.Root,
+			Queue: nil,
+		}
+		t.render(route.root, construct, hook)
+		route.root.BeforeRender(hook)
 		t.finish(route.scope, t.Root)
-		route.root.Hook(t, route.scope, BeforeRender, attrs, t.Root, nil)
+		route.root.AfterRender(hook)
 	} else {
 		println("route not found: " + path)
 	}
+}
+
+func (t Tango) Nav(path string) {
+	js.Global().Get("window").Get("location").Set("hash", "!"+path) // unsafe
 }
 
 func (t *Tango) finish(scope *Scope, node js.Value) {
@@ -173,17 +184,24 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 		} else {
 			local = scope
 		}
-		stop = t.render(component, construct, local, m, node, queue)
+		hook := Hook{
+			Self:  t,
+			Scope: local,
+			Attrs: m,
+			Node:  node,
+			Queue: queue,
+		}
+		stop = t.render(component, construct, hook)
 	}
 	return stop
 }
 
-func (t *Tango) render(component Component, construct bool, scope *Scope, attr map[string]string, node js.Value, queue *Queue) (stop bool) {
+func (t *Tango) render(component Component, construct bool, hook Hook) (stop bool) {
 	if construct {
-		stop = !component.Hook(t, scope, Construct, attr, node, queue)
+		stop = !component.Constructor(hook)
 	}
 	if component.Config().Kind != Attribute {
-		node.Set("innerHTML", component.Render())
+		hook.Node.Set("innerHTML", component.Render())
 	}
 	return
 }

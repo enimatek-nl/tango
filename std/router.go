@@ -17,20 +17,21 @@ func (r Router) Config() tango.ComponentConfig {
 	}
 }
 
-func (r Router) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHook, attrs map[string]string, node js.Value, queue *tango.Queue) bool {
-	switch hook {
-	case tango.Construct:
-		self.Root = node
-		if p, e := attrs[PATH]; e {
-			js.Global().Get("window").Get("location").Set("hash", "#!"+p)
-			queue.Post = append(queue.Post, func() {
-				self.Navigate(p)
-			})
-		} else {
-			panic("don't forget to set a 'path=' attribute")
-		}
+func (r Router) Constructor(hook tango.Hook) bool {
+	hook.Self.Root = hook.Node
+	if p, e := hook.Attrs[PATH]; e {
+		js.Global().Get("window").Get("location").Set("hash", "") // clear current hash
+		hook.Queue.Post = append(hook.Queue.Post, func() {
+			hook.Self.Nav(p) // nav to defined default hash (picked up by 'hash change event')
+		})
+	} else {
+		panic("don't forget to set a 'path=' attribute")
 	}
 	return true
 }
+
+func (r Router) BeforeRender(hook tango.Hook) {}
+
+func (r Router) AfterRender(hook tango.Hook) {}
 
 func (r Router) Render() string { return "" }

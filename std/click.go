@@ -15,21 +15,21 @@ func (c Click) Config() tango.ComponentConfig {
 	}
 }
 
-func (c Click) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHook, attrs map[string]string, node js.Value, queue *tango.Queue) bool {
-	switch hook {
-	case tango.Construct:
-		node.Call("addEventListener", "click", js.FuncOf(
-			func(this js.Value, args []js.Value) interface{} {
-				args[0].Call("stopPropagation")
-				args[0].Call("preventDefault")
-				println("clicked: " + c.Config().Name)
-				scope.Exec(node, scope, js.ValueOf(attrs[c.Config().Name]))
-				scope.Digest()
-				return nil
-			}),
-		)
-	}
+func (c Click) Constructor(hook tango.Hook) bool {
+	hook.Node.Call("addEventListener", "click", js.FuncOf(
+		func(this js.Value, args []js.Value) interface{} {
+			args[0].Call("stopPropagation")
+			args[0].Call("preventDefault")
+			hook.Scope.Exec(hook.Node, hook.Scope, js.ValueOf(hook.Attrs[c.Config().Name]))
+			hook.Scope.Digest()
+			return nil
+		}),
+	)
 	return true
 }
+
+func (c Click) BeforeRender(hook tango.Hook) {}
+
+func (c Click) AfterRender(hook tango.Hook) {}
 
 func (c Click) Render() string { return "" }

@@ -16,59 +16,60 @@ func (r Repeat) Config() tango.ComponentConfig {
 	}
 }
 
-func (r Repeat) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHook, attrs map[string]string, node js.Value, queue *tango.Queue) bool {
-	switch hook {
-	case tango.Construct:
-		if valueOf, e := attrs[r.Config().Name]; e {
-			id := self.GenId()
-			parts := strings.Split(valueOf, " in ")
-			parentNode := node.Get("parentNode")
-			document := js.Global().Get("document")
+func (r Repeat) Constructor(hook tango.Hook) bool {
+	if valueOf, e := hook.Attrs[r.Config().Name]; e {
+		id := hook.Self.GenId()
+		parts := strings.Split(valueOf, " in ")
+		parentNode := hook.Node.Get("parentNode")
+		document := js.Global().Get("document")
 
-			placeholder := document.Call("createElement", "template")
-			placeholder.Call("setAttribute", "tng-repeat-id", id)
-			parentNode.Call("replaceChild", placeholder, node)
+		placeholder := document.Call("createElement", "template")
+		placeholder.Call("setAttribute", "tng-repeat-id", id)
+		parentNode.Call("replaceChild", placeholder, hook.Node)
 
-			if _, e := scope.Get(parts[1]); e {
-				scope.Subscribe(parts[1], func(scope *tango.Scope, value js.Value) {
-					var nominated []js.Value
-					children := parentNode.Get("children")
-					for j := 0; j < children.Length(); j++ {
-						child := children.Index(j)
-						if child.Call("hasAttribute", "tng-repeat").Bool() ||
-							child.Call("hasAttribute", "tng-repeat-item").Bool() {
-							if child.Equal(node) || child.Call("getAttribute", "tng-repeat-id").String() == id {
-								nominated = append(nominated, child)
-							}
+		if _, e := hook.Scope.Get(parts[1]); e {
+			hook.Scope.Subscribe(parts[1], func(scope *tango.Scope, value js.Value) {
+				var nominated []js.Value
+				children := parentNode.Get("children")
+				for j := 0; j < children.Length(); j++ {
+					child := children.Index(j)
+					if child.Call("hasAttribute", "tng-repeat").Bool() ||
+						child.Call("hasAttribute", "tng-repeat-item").Bool() {
+						if child.Equal(hook.Node) || child.Call("getAttribute", "tng-repeat-id").String() == id {
+							nominated = append(nominated, child)
 						}
 					}
+				}
 
-					for _, n := range nominated {
-						parentNode.Call("removeChild", n)
-					}
+				for _, n := range nominated {
+					parentNode.Call("removeChild", n)
+				}
 
-					for i := 0; i < value.Length(); i++ {
-						clone := node.Call("cloneNode", js.ValueOf(true))
-						clone.Call("removeAttribute", "tng-repeat")
-						clone.Call("setAttribute", "tng-repeat-item", "")
-						clone.Call("setAttribute", "tng-repeat-id", id)
-						parentNode.Call("insertBefore", clone, placeholder)
+				for i := 0; i < value.Length(); i++ {
+					clone := hook.Node.Call("cloneNode", js.ValueOf(true))
+					clone.Call("removeAttribute", "tng-repeat")
+					clone.Call("setAttribute", "tng-repeat-item", "")
+					clone.Call("setAttribute", "tng-repeat-id", id)
+					parentNode.Call("insertBefore", clone, placeholder)
 
-						childScope := scope.Clone()
-						item := value.Index(i)
-						childScope.Set(parts[0], item)
-						var childQueue tango.Queue
+					childScope := scope.Clone()
+					item := value.Index(i)
+					childScope.Set(parts[0], item)
+					var childQueue tango.Queue
 
-						self.Compile(childScope, clone, &childQueue)
-						childScope.Digest()
-					}
-				})
-			}
-		} else {
-			panic(r.Config().Name + " attribute not set")
+					hook.Self.Compile(childScope, clone, &childQueue)
+					childScope.Digest()
+				}
+			})
 		}
+	} else {
+		panic(r.Config().Name + " attribute not set")
 	}
 	return false
 }
+
+func (r Repeat) BeforeRender(hook tango.Hook) {}
+
+func (r Repeat) AfterRender(hook tango.Hook) {}
 
 func (r Repeat) Render() string { return "" }

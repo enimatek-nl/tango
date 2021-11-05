@@ -15,21 +15,22 @@ func (c Change) Config() tango.ComponentConfig {
 	}
 }
 
-func (c Change) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHook, attrs map[string]string, node js.Value, queue *tango.Queue) bool {
-	switch hook {
-	case tango.Construct:
-		if valueOf, e := attrs[c.Config().Name]; e {
-			node.Call("addEventListener", "change", js.FuncOf(
-				func(this js.Value, args []js.Value) interface{} {
-					scope.Exec(node, scope, js.ValueOf(valueOf))
-					return nil
-				}),
-			)
-		} else {
-			panic(c.Config().Name + " attribute not set")
-		}
+func (c Change) Constructor(hook tango.Hook) bool {
+	if valueOf, e := hook.Attrs[c.Config().Name]; e {
+		hook.Node.Call("addEventListener", "change", js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				hook.Scope.Exec(hook.Node, hook.Scope, js.ValueOf(valueOf))
+				return nil
+			}),
+		)
+	} else {
+		panic(c.Config().Name + " attribute not set")
 	}
 	return true
 }
+
+func (c Change) BeforeRender(hook tango.Hook) {}
+
+func (c Change) AfterRender(hook tango.Hook) {}
 
 func (c Change) Render() string { return "" }

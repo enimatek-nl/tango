@@ -48,20 +48,23 @@ func (v ViewController) Config() tango.ComponentConfig {
     }
 }
 
-func (v *ViewController) click(value js.Value, scope *tango.Scope) {
-    println("hello world!")
-}
-
-func (v ViewController) HookHook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHook, attrs map[string]string, node js.Value, queue *tango.Queue) bool {
-    switch hook {
-    case tango.Construct:
-        scope.SetFunc("clickFunc", v.click)
-    }
+func (v ViewController) Constructor(hook tango.Hook) bool {
+    hook.Scope.SetFunc("clickme", (value js.Value, scope *tango.Scope) {
+        println("hello world!")
+    })
     return true
 }
 
+func (v ViewController) BeforeRender(hook tango.Hook) {}
+
+func (v ViewController) AfterRender(hook tango.Hook) {}
+
 func (v ViewController) Render() string {
-    return `<button tng-click="clickFunc">click me!</button>`   
+    return `
+        <div>
+            <button tng-click="clickme">click me!</button>
+        </div>
+    `
 }
 ```
 

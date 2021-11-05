@@ -24,8 +24,19 @@ type ComponentConfig struct {
 	Scoped bool
 }
 
+type Hook struct {
+	Self  *Tango
+	Scope *Scope
+	Attrs map[string]string
+	Node  js.Value
+	Queue *Queue
+}
+
 type Component interface {
 	Config() ComponentConfig // ComponentConfig describes the details of the component
-	Hook(self *Tango, scope *Scope, hook ComponentHook, attrs map[string]string, node js.Value, queue *Queue) bool
+	Constructor(hook Hook) bool
+	BeforeRender(hook Hook)
 	Render() string // return a template of innerHTML for Controller and Tag
+	AfterRender(hook Hook)
+	// Hook(self *Tango, scope *Scope, hook ComponentHook, attrs map[string]string, node js.Value, queue *Queue) bool
 }

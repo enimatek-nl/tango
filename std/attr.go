@@ -16,42 +16,43 @@ func (a Attr) Config() tango.ComponentConfig {
 	}
 }
 
-func (a Attr) Hook(self *tango.Tango, scope *tango.Scope, hook tango.ComponentHook, attrs map[string]string, node js.Value, queue *tango.Queue) bool {
-	switch hook {
-	case tango.Construct:
-		if valueOf, e := attrs[a.Config().Name]; e {
-			onlyWhen := true
-			parts := strings.Split(valueOf, " when ")
-			if len(parts) == 1 {
-				parts = strings.Split(valueOf, " is ")
-				onlyWhen = false
-			}
+func (a Attr) Constructor(hook tango.Hook) bool {
+	if valueOf, e := hook.Attrs[a.Config().Name]; e {
+		onlyWhen := true
+		parts := strings.Split(valueOf, " when ")
+		if len(parts) == 1 {
+			parts = strings.Split(valueOf, " is ")
+			onlyWhen = false
+		}
 
-			if len(parts) == 2 {
-				if _, e := scope.Get(parts[1]); e {
-					handle := func(v js.Value) {
-						if onlyWhen {
-							if v.Bool() {
-								node.Call("setAttribute", parts[0], js.ValueOf(""))
-							} else {
-								node.Call("removeAttribute", parts[0])
-							}
+		if len(parts) == 2 {
+			if _, e := hook.Scope.Get(parts[1]); e {
+				handle := func(v js.Value) {
+					if onlyWhen {
+						if v.Bool() {
+							hook.Node.Call("setAttribute", parts[0], js.ValueOf(""))
 						} else {
-							node.Call("setAttribute", parts[0], v)
+							hook.Node.Call("removeAttribute", parts[0])
 						}
+					} else {
+						hook.Node.Call("setAttribute", parts[0], v)
 					}
-					scope.Subscribe(parts[1], func(scope *tango.Scope, value js.Value) {
-						handle(value)
-					})
 				}
-			} else {
-				panic("can't parse '" + valueOf + "'")
+				hook.Scope.Subscribe(parts[1], func(scope *tango.Scope, value js.Value) {
+					handle(value)
+				})
 			}
 		} else {
-			panic(a.Config().Name + " attribute not set")
+			panic("can't parse '" + valueOf + "'")
 		}
+	} else {
+		panic(a.Config().Name + " attribute not set")
 	}
 	return true
 }
+
+func (a Attr) BeforeRender(hook tango.Hook) {}
+
+func (a Attr) AfterRender(hook tango.Hook) {}
 
 func (a Attr) Render() string { return "" }
