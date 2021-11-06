@@ -1,6 +1,8 @@
 package tango
 
 import (
+	"errors"
+	"github.com/enimatek-nl/tango/vert"
 	"strings"
 	"syscall/js"
 )
@@ -41,7 +43,7 @@ func (s *Scope) Set(name string, value interface{}) {
 	parts := strings.Split(name, ".")
 	last := len(parts) - 1
 	if len(parts) == 1 {
-		s.model.values[name] = ValueOf(value)
+		s.model.values[name] = vert.ValueOf(value)
 	} else {
 		exists := false
 		var id string
@@ -68,6 +70,13 @@ func (s *Scope) Set(name string, value interface{}) {
 
 func (s *Scope) Parent() *Scope {
 	return s.parent
+}
+
+func (s *Scope) GetAs(name string, i interface{}) error {
+	if v, e := s.Get(name); e {
+		return vert.AssignTo(v, i)
+	}
+	return errors.New("'" + name + "' not found in scope model")
 }
 
 func (s *Scope) Get(name string) (js.Value, bool) {

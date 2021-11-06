@@ -17,13 +17,14 @@ func (b Bind) Config() tango.ComponentConfig {
 
 func (b Bind) Constructor(hook tango.Hook) bool {
 	if valueOf, e := hook.Attrs[b.Config().Name]; e {
-		if _, e := hook.Scope.Get(valueOf); e {
-			hook.Scope.Subscribe(valueOf, func(scope *tango.Scope, value js.Value) {
-				// TODO: based on element type
-				hook.Node.Set("innerHTML", value)
+		hook.Scope.Subscribe(valueOf, func(scope *tango.Scope, value js.Value) {
+			// TODO: add more exceptions on elements.
+			if hook.Node.Get("nodeName").String() == "INPUT" {
 				hook.Node.Set("value", value)
-			})
-		}
+			} else {
+				hook.Node.Set("innerHTML", value)
+			}
+		})
 	} else {
 		panic(b.Config().Name + " attribute not set")
 	}

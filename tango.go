@@ -140,28 +140,28 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 	}
 
 	// check for unique tagName directive matches...
-	var component Component = nil
+	var components []Component = nil
 	tn := node.Get("tagName").String()
 	for _, c := range t.components {
 		if c.Config().Kind == Tag && strings.ToLower(c.Config().Name) == strings.ToLower(tn) {
-			component = c
+			components = append(components, c)
 			break
 		}
 	}
 
 	// if tagName is a known HTML5 tag, process attribute directives
-	if component == nil {
+	if len(components) == 0 {
 		for _, c := range t.components {
 			if _, e := m[c.Config().Name]; e {
 				if c.Config().Kind == Attribute {
-					component = c
+					components = append(components, c)
 				}
 			}
 		}
 	}
 
 	// render the component
-	if component != nil {
+	if len(components) > 0 {
 		// retrieve the node element's id
 		construct := false
 		var id string
@@ -173,25 +173,27 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 			id = n
 		}
 
-		var local *Scope
-		if component.Config().Scoped {
-			if c, e := scope.children[id]; !e {
-				local = NewScope(scope)
-				scope.children[id] = local
+		for _, component := range components {
+			var local *Scope
+			if component.Config().Scoped {
+				if c, e := scope.children[id]; !e {
+					local = NewScope(scope)
+					scope.children[id] = local
+				} else {
+					local = c
+				}
 			} else {
-				local = c
+				local = scope
 			}
-		} else {
-			local = scope
+			hook := Hook{
+				Self:  t,
+				Scope: local,
+				Attrs: m,
+				Node:  node,
+				Queue: queue,
+			}
+			stop = t.render(component, construct, hook)
 		}
-		hook := Hook{
-			Self:  t,
-			Scope: local,
-			Attrs: m,
-			Node:  node,
-			Queue: queue,
-		}
-		stop = t.render(component, construct, hook)
 	}
 	return stop
 }
