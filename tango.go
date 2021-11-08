@@ -90,10 +90,10 @@ func (t *Tango) navigate(path string) {
 			Node:  t.Root,
 			Queue: nil,
 		}
-		t.render(route.root, construct, hook)
 		route.root.BeforeRender(hook)
-		t.finish(route.scope, t.Root)
+		t.render(route.root, construct, hook)
 		route.root.AfterRender(hook)
+		t.finish(route.scope, t.Root)
 	} else {
 		println("route not found: " + path)
 	}

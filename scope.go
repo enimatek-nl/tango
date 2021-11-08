@@ -1,7 +1,7 @@
 package tango
 
 import (
-	"errors"
+	"encoding/json"
 	"github.com/enimatek-nl/tango/vert"
 	"strings"
 	"syscall/js"
@@ -72,11 +72,23 @@ func (s *Scope) Parent() *Scope {
 	return s.parent
 }
 
-func (s *Scope) GetAs(name string, i interface{}) error {
+func (s *Scope) GetJSON(name string) string {
 	if v, e := s.Get(name); e {
-		return vert.AssignTo(v, i)
+		return js.Global().Get("JSON").Call("stringify", v, js.FuncOf(replacer)).String()
 	}
-	return errors.New("'" + name + "' not found in scope model")
+	return "{}"
+}
+
+func replacer(this js.Value, inputs []js.Value) interface{} {
+	if !inputs[1].Equal(js.Undefined()) || !inputs[1].Equal(js.Null()) {
+		return inputs[1]
+	} else {
+		return js.Null()
+	}
+}
+
+func (s *Scope) Decode(name string, i interface{}) error {
+	return json.NewDecoder(strings.NewReader(s.GetJSON(name))).Decode(i)
 }
 
 func (s *Scope) Get(name string) (js.Value, bool) {

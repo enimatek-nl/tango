@@ -3,11 +3,11 @@ package vert
 import (
 	"reflect"
 	"syscall/js"
+	"time"
 )
 
-// Heavily based on some pre-work done by: https://github.com/norunners/vert/
+// Modified version of github.com/norunners/vert's value.go
 // .. this is mandatory to convert 'complicated' structs 'generic' into a js.Value
-// I think it should be part of the js.Value std lib
 
 var (
 	null   = js.ValueOf(nil)
@@ -16,6 +16,7 @@ var (
 )
 
 func ValueOf(i interface{}) js.Value {
+	//j, _ := json.Marshal(i)
 	switch i.(type) {
 	case nil, js.Value, js.Wrapper:
 		return js.ValueOf(i)
@@ -79,16 +80,40 @@ func valueOfMap(v reflect.Value) js.Value {
 
 // valueOfStruct returns a new object value.
 func valueOfStruct(v reflect.Value) js.Value {
-	t := v.Type()
 	s := object.New()
+	deepFields(&s, v)
+	return s
+}
+
+// deepFields Recursively add fields to an object
+// 1. this will ensure Anonymous embedded structs will be flattened
+// 2. when a 'Valid bool' is part of the struct (think nullable sql structs) it will be ignored when false
+func deepFields(s *js.Value, v reflect.Value) {
+	t := v.Type()
 	n := v.NumField()
 	for i := 0; i < n; i++ {
 		if f := v.Field(i); f.CanInterface() {
-			k := nameOf(t.Field(i))
-			s.Set(k, valueOf(f))
+			sf := t.Field(i)
+			k := nameOf(sf)
+			if f.Type().Kind() == reflect.Struct { // ignore '!Valid' structs (sql nullable)
+				u := f.FieldByName("Valid")
+				if u.IsValid() && u.Type().Kind() == reflect.Bool {
+					if !u.Interface().(bool) {
+						s.Set(k, js.Undefined())
+						break
+					}
+				}
+			}
+			if sf.Type.PkgPath() == "time" && sf.Type.Name() == "Time" { // parse time.Time into JS JSON standard
+				t := f.Interface().(time.Time).UTC().Format("2006-01-02T15:04:05Z")
+				s.Set(k, t)
+			} else if sf.Anonymous { // flatten embedded structs
+				deepFields(s, f)
+			} else {
+				s.Set(k, valueOf(f))
+			}
 		}
 	}
-	return s
 }
 
 // nameOf returns the JS tag name, otherwise the field name.
