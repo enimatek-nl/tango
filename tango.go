@@ -7,11 +7,13 @@ import (
 	"syscall/js"
 )
 
+// Queue is able to collect functions that needs to be run at a different time during the compile process
 type Queue struct {
-	Render []func()
-	Post   []func()
+	Post []func()
 }
 
+// Tango is an opinionated go(lang) WASM/SPA framework based on React & Angular JS.
+// See the tango-example for a full batteries included example of what is possible only using go & html/css.
 type Tango struct {
 	scope      *Scope
 	components []Component
@@ -19,26 +21,31 @@ type Tango struct {
 	Root       js.Value
 }
 
+// New returns a fresh tango instance with an empty root Scope
 func New() *Tango {
 	return &Tango{
 		scope: NewScope(nil),
 	}
 }
 
+// GenId creates a random ID used to differentiate objects within the DOM
 func (t *Tango) GenId() string {
 	b := make([]byte, 8)
 	rand.Read(b)
 	return fmt.Sprintf("%x", b)
 }
 
+// AddRoutes is used to add your Route's to Tango
 func (t *Tango) AddRoutes(routes ...Route) {
 	t.routes = routes
 }
 
+// AddComponents can be used to add your Component's to Tango
 func (t *Tango) AddComponents(components ...Component) {
 	t.components = components
 }
 
+// Bootstrap has to be called to initialize the Tango SPA when everything has been set up
 func (t *Tango) Bootstrap() {
 	js.Global().Get("window").Call("addEventListener", "hashchange", js.FuncOf(
 		func(this js.Value, args []js.Value) interface{} {
@@ -50,6 +57,7 @@ func (t *Tango) Bootstrap() {
 	t.finish(t.scope, js.Global().Get("document").Call("getElementsByTagName", "body").Index(0))
 }
 
+// matchRoute can be used to retrieve the Route and a map of parameters based on the path input
 func (t *Tango) matchRoute(path string) (route *Route, params map[string]string) {
 	params = make(map[string]string)
 	splt := strings.Split(path, "/")
@@ -75,6 +83,7 @@ func (t *Tango) matchRoute(path string) (route *Route, params map[string]string)
 	return
 }
 
+// navigate will matchRoute the path and render the Route's Controller Component
 func (t *Tango) navigate(path string) {
 	route, attrs := t.matchRoute(path)
 	if route != nil {
@@ -92,17 +101,20 @@ func (t *Tango) navigate(path string) {
 		}
 		route.root.BeforeRender(hook)
 		t.render(route.root, construct, hook)
-		route.root.AfterRender(hook)
 		t.finish(route.scope, t.Root)
+		route.root.AfterRender(hook)
 	} else {
 		println("route not found: " + path)
 	}
 }
 
+// Nav will trigger the onChange event that will trigger navigate based on the path
 func (t Tango) Nav(path string) {
 	js.Global().Get("window").Get("location").Set("hash", "!"+path) // unsafe
 }
 
+// finish is called when BeforeRender and render are done.
+// it will compile the scope and run the Queue when done.
 func (t *Tango) finish(scope *Scope, node js.Value) {
 	var queue Queue
 	t.Compile(scope, node, &queue)
@@ -114,6 +126,7 @@ func (t *Tango) finish(scope *Scope, node js.Value) {
 	}
 }
 
+// Compile runs exec on each Component found within the DOM matching the criteria of the Config
 func (t *Tango) Compile(scope *Scope, node js.Value, queue *Queue) {
 	stop := false
 	if !node.Equal(t.Root) {
@@ -127,6 +140,7 @@ func (t *Tango) Compile(scope *Scope, node js.Value, queue *Queue) {
 	}
 }
 
+// exec is called recursively from Compile to touch all DOM elements
 func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 	stop := false
 	m := make(map[string]string)
@@ -198,6 +212,7 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 	return stop
 }
 
+// render is a helper func to set the innerHTML of a template provided by a Component
 func (t *Tango) render(component Component, construct bool, hook Hook) (stop bool) {
 	if construct {
 		stop = !component.Constructor(hook)

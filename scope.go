@@ -13,11 +13,13 @@ type Subscription struct {
 	previous js.Value
 }
 
+// SModel stands for Scope Model it contains all values (properties) and functions (methods) that will be available in the DOM (view)
 type SModel struct {
 	values    map[string]js.Value
 	functions map[string]func(value js.Value, scope *Scope)
 }
 
+// Scope is the binding part between the HTML (view) and the go-code (controller)
 type Scope struct {
 	model         SModel
 	parent        *Scope
@@ -25,6 +27,7 @@ type Scope struct {
 	children      map[string]*Scope
 }
 
+// NewScope create a new scope based on the parent
 func NewScope(parent *Scope) *Scope {
 	return &Scope{
 		model: SModel{
@@ -35,10 +38,12 @@ func NewScope(parent *Scope) *Scope {
 	}
 }
 
+// SetFunc will add a function shared by name with the DOM (view)
 func (s *Scope) SetFunc(name string, f func(value js.Value, scope *Scope)) {
 	s.model.functions[name] = f
 }
 
+// Set will add a value/property shared by name with the DOM (view)
 func (s *Scope) Set(name string, value interface{}) {
 	parts := strings.Split(name, ".")
 	last := len(parts) - 1
@@ -68,10 +73,12 @@ func (s *Scope) Set(name string, value interface{}) {
 	}
 }
 
+// Parent retrieves the parent of the Scope
 func (s *Scope) Parent() *Scope {
 	return s.parent
 }
 
+// GetJSON converts the object behind the name index to a JSON.stringify string
 func (s *Scope) GetJSON(name string) string {
 	if v, e := s.Get(name); e {
 		return js.Global().Get("JSON").Call("stringify", v, js.FuncOf(replacer)).String()
@@ -79,6 +86,7 @@ func (s *Scope) GetJSON(name string) string {
 	return "{}"
 }
 
+// replacer is a function used by JSON.stringify
 func replacer(this js.Value, inputs []js.Value) interface{} {
 	if !inputs[1].Equal(js.Undefined()) || !inputs[1].Equal(js.Null()) {
 		return inputs[1]
@@ -87,10 +95,12 @@ func replacer(this js.Value, inputs []js.Value) interface{} {
 	}
 }
 
+// Decode the name index into the struct interface
 func (s *Scope) Decode(name string, i interface{}) error {
 	return json.NewDecoder(strings.NewReader(s.GetJSON(name))).Decode(i)
 }
 
+// Get the name index as js.Value
 func (s *Scope) Get(name string) (js.Value, bool) {
 	parts := strings.Split(name, ".")
 	exists := false
@@ -122,6 +132,7 @@ func (s *Scope) Get(name string) (js.Value, bool) {
 	return obj, exists
 }
 
+// Digest all Subscription's made on the Scope
 func (s *Scope) Digest() {
 	for _, sub := range s.subscriptions {
 		if v, e := s.Get(sub.name); e {
@@ -138,10 +149,12 @@ func (s *Scope) Digest() {
 	}
 }
 
+// Clone current Scope as a child of current Scope
 func (s *Scope) Clone() *Scope {
 	return NewScope(s)
 }
 
+// Subscribe on changes of the name index and receive the changed value
 func (s *Scope) Subscribe(name string, f func(scope *Scope, value js.Value)) {
 	s.subscriptions = append(s.subscriptions, &Subscription{
 		name:     name,
@@ -154,18 +167,19 @@ func (s *Scope) Destroy() {
 	// TODO: clean ?
 }
 
-func (s *Scope) Exec(node js.Value, scope *Scope, valueOf js.Value) {
-	id := valueOf.String()
-	if f, exists := s.model.functions[id]; exists {
+// Exec the underlying func of the name index
+func (s *Scope) Exec(name string, scope *Scope, node js.Value) {
+	if f, exists := s.model.functions[name]; exists {
 		f(node, scope)
 		return
 	} else if s.parent != nil {
-		s.parent.Exec(node, scope, valueOf)
+		s.parent.Exec(name, scope, node)
 	} else {
-		println("'" + id + "' function name not found in scope model")
+		println("'" + name + "' function name not found in scope model")
 	}
 }
 
+// Root will recursively retrieve the root Scope
 func (s *Scope) Root() *Scope {
 	if s.parent != nil {
 		return s.Root()

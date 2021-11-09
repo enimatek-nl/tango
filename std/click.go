@@ -20,7 +20,7 @@ func (c Click) Constructor(hook tango.Hook) bool {
 		func(this js.Value, args []js.Value) interface{} {
 			args[0].Call("stopPropagation")
 			args[0].Call("preventDefault")
-			hook.Scope.Exec(hook.Node, hook.Scope, js.ValueOf(hook.Attrs[c.Config().Name]))
+			hook.Scope.Exec(hook.Attrs[c.Config().Name], hook.Scope, hook.Node)
 			hook.Scope.Digest()
 			return nil
 		}),
