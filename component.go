@@ -18,12 +18,15 @@ const (
 	AfterRender
 )
 
+// ComponentConfig describes the Component's Kind and Name (details)
 type ComponentConfig struct {
 	Name   string
 	Kind   Kind
 	Scoped bool
 }
 
+// Hook is a passable struct used to give access to the most common internals
+// the Hook's are available during different phases of the Component lifecycle
 type Hook struct {
 	Self  *Tango
 	Scope *Scope
@@ -32,11 +35,13 @@ type Hook struct {
 	Queue *Queue
 }
 
+// Component can be of different Kind's
+// In all cases a ComponentConfig is mandatory
+// Only the Tag and Controller Kind can use the Render func to return an HTML template
 type Component interface {
-	Config() ComponentConfig // ComponentConfig describes the details of the component
+	Config() ComponentConfig
 	Constructor(hook Hook) bool
 	BeforeRender(hook Hook)
-	Render() string // return a template of innerHTML for Controller and Tag
+	Render() string
 	AfterRender(hook Hook)
-	// Hook(self *Tango, scope *Scope, hook ComponentHook, attrs map[string]string, node js.Value, queue *Queue) bool
 }

@@ -7,6 +7,7 @@ type RoutePath struct {
 	Match bool
 }
 
+// Route struct is the glue between a RoutePath and the Component available on that path
 type Route struct {
 	// TODO: add guards etc.
 	Path  []RoutePath
@@ -14,6 +15,7 @@ type Route struct {
 	root  Component
 }
 
+// NewRoute will make a Route struct out of the path (using makeRoute) and the Component (Controller)
 func NewRoute(path string, root Component) Route {
 	return Route{
 		Path: makeRoute(path),
@@ -21,6 +23,8 @@ func NewRoute(path string, root Component) Route {
 	}
 }
 
+// makeRoute parses a path with placeholder syntax
+// eg '/path/to/:id' where :id can be anything
 func makeRoute(r string) (path []RoutePath) {
 	if len(r) > 0 && r[0] == '/' {
 
