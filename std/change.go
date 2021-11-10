@@ -19,7 +19,7 @@ func (c Change) Constructor(hook tango.Hook) bool {
 	if valueOf, e := hook.Attrs[c.Config().Name]; e {
 		hook.Node.Call("addEventListener", "change", js.FuncOf(
 			func(this js.Value, args []js.Value) interface{} {
-				hook.Scope.Exec(valueOf, hook.Scope, hook.Node)
+				hook.Run(valueOf)
 				return nil
 			}),
 		)

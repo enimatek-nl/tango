@@ -48,20 +48,22 @@ func (v ViewController) Config() tango.ComponentConfig {
     }
 }
 
-func (v ViewController) Constructor(hook tango.Hook) bool {
-    hook.Scope.SetFunc("clickme", (value js.Value, scope *tango.Scope) {
-        println("hello world!")
+func (v ViewController) Constructor(parent tango.Hook) bool {
+    parent.Set("hello", "...")
+    parent.Scope.SetFunc("clickme", (hook tango.Hook) {
+        parent.Set("hello", "world!")
     })
     return true
 }
 
-func (v ViewController) BeforeRender(hook tango.Hook) {}
+func (v ViewController) BeforeRender(parent tango.Hook) {}
 
-func (v ViewController) AfterRender(hook tango.Hook) {}
+func (v ViewController) AfterRender(parent tango.Hook) {}
 
 func (v ViewController) Render() string {
     return `
         <div>
+            <p tng-bind="hello"></p>
             <button tng-click="clickme">click me!</button>
         </div>
     `

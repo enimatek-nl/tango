@@ -7,16 +7,18 @@ import (
 	"syscall/js"
 )
 
-type Subscription struct {
-	name     string
-	callback func(scope *Scope, value js.Value)
-	previous js.Value
-}
+type SFunc func(hook *Hook)
 
 // SModel stands for Scope Model it contains all values (properties) and functions (methods) that will be available in the DOM (view)
 type SModel struct {
 	values    map[string]js.Value
-	functions map[string]func(value js.Value, scope *Scope)
+	functions map[string]SFunc
+}
+
+type Subscription struct {
+	name     string
+	callback func(scope *Scope, value js.Value)
+	previous js.Value
 }
 
 // Scope is the binding part between the HTML (view) and the go-code (controller)
@@ -32,14 +34,14 @@ func NewScope(parent *Scope) *Scope {
 	return &Scope{
 		model: SModel{
 			values:    make(map[string]js.Value),
-			functions: make(map[string]func(value js.Value, scope *Scope)),
+			functions: make(map[string]SFunc),
 		},
 		parent: parent,
 	}
 }
 
 // SetFunc will add a function shared by name with the DOM (view)
-func (s *Scope) SetFunc(name string, f func(value js.Value, scope *Scope)) {
+func (s *Scope) SetFunc(name string, f SFunc) {
 	s.model.functions[name] = f
 }
 
@@ -168,12 +170,12 @@ func (s *Scope) Destroy() {
 }
 
 // Exec the underlying func of the name index
-func (s *Scope) Exec(name string, scope *Scope, node js.Value) {
+func (s *Scope) Exec(name string, hook *Hook) {
 	if f, exists := s.model.functions[name]; exists {
-		f(node, scope)
+		f(hook)
 		return
 	} else if s.parent != nil {
-		s.parent.Exec(name, scope, node)
+		s.parent.Exec(name, hook)
 	} else {
 		println("'" + name + "' function name not found in scope model")
 	}

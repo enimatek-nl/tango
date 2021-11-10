@@ -7,11 +7,6 @@ import (
 	"syscall/js"
 )
 
-// Queue is able to collect functions that needs to be run at a different time during the compile process
-type Queue struct {
-	Post []func()
-}
-
 // Tango is an opinionated go(lang) WASM/SPA framework based on React & Angular JS.
 // See the tango-example for a full batteries included example of what is possible only using go & html/css.
 type Tango struct {
@@ -26,6 +21,26 @@ func New() *Tango {
 	return &Tango{
 		scope: NewScope(nil),
 	}
+}
+
+// Queue is able to collect functions that needs to be run after the recursion is done.
+// This means Queue is not nil (when available in a Hook) if the hook is part of a recursion.
+type Queue struct {
+	Post []func()
+}
+
+// Hook is a passable struct used to give access to the most common internals
+// the Hook's are available during different phases of the Component lifecycle
+type Hook struct {
+	Self  *Tango
+	Scope *Scope            // local scope where the Node resides
+	Attrs map[string]string // attrs can be mapped from a RoutePath or Attributes from an HTMLElement
+	Node  js.Value          // Element or value from the view that has been 'hooked'
+	Queue *Queue            // not nil when recursive
+}
+
+func (h *Hook) Run(attr string) {
+	h.Scope.Exec(h.Attrs[attr], h)
 }
 
 // GenId creates a random ID used to differentiate objects within the DOM
