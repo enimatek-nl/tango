@@ -121,8 +121,7 @@ func (s *Scope) Get(name string) (js.Value, bool) {
 				if s.parent != nil {
 					return s.parent.Get(name)
 				} else {
-					println("'" + name + "' not found in scope model")
-					return obj, false
+					return obj, false // name not found = false
 				}
 			}
 		} else {
@@ -142,8 +141,6 @@ func (s *Scope) Digest() {
 				sub.previous = v
 				sub.callback(s, v)
 			}
-		} else {
-			println("subscription name not found in scope model")
 		}
 	}
 	if s.parent != nil {
