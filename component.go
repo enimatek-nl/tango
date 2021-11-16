@@ -20,8 +20,8 @@ type ComponentConfig struct {
 // Only the Tag and Controller Kind can use the Render func to return an HTML template
 type Component interface {
 	Config() ComponentConfig
-	Constructor(hook Hook) bool
-	BeforeRender(hook Hook)
+	Constructor(tng Hook) bool
+	BeforeRender(tng Hook)
 	Render() string
-	AfterRender(hook Hook)
+	AfterRender(tng Hook)
 }

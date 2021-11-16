@@ -7,7 +7,8 @@ import (
 	"syscall/js"
 )
 
-type SFunc func(hook *Hook)
+// SFunc type defines a loc(al) Hook used within JS functions and callbacks
+type SFunc func(loc *Hook)
 
 // SModel stands for Scope Model it contains all values (properties) and functions (methods) that will be available in the DOM (view)
 type SModel struct {
@@ -43,6 +44,37 @@ func NewScope(parent *Scope) *Scope {
 // SetFunc will add a function shared by name with the DOM (view)
 func (s *Scope) SetFunc(name string, f SFunc) {
 	s.model.functions[name] = f
+}
+
+// Get the name index as js.Value
+func (s *Scope) Get(name string) (js.Value, bool) {
+	parts := strings.Split(name, ".")
+	exists := false
+	var id string
+	var obj js.Value
+	c := 0
+
+	for i, p := range parts {
+		c++
+		if i == 0 {
+			id = p
+			if o, e := s.model.values[id]; e {
+				obj = o
+				exists = true
+			} else {
+				if s.parent != nil {
+					return s.parent.Get(name)
+				} else {
+					return obj, false // name not found = false
+				}
+			}
+		} else {
+			if s.model.values[id].Call("hasOwnProperty", p).Bool() {
+				obj = obj.Get(p)
+			}
+		}
+	}
+	return obj, exists
 }
 
 // Set will add a value/property shared by name with the DOM (view)
@@ -100,37 +132,6 @@ func replacer(this js.Value, inputs []js.Value) interface{} {
 // Decode the name index into the struct interface
 func (s *Scope) Decode(name string, i interface{}) error {
 	return json.NewDecoder(strings.NewReader(s.GetJSON(name))).Decode(i)
-}
-
-// Get the name index as js.Value
-func (s *Scope) Get(name string) (js.Value, bool) {
-	parts := strings.Split(name, ".")
-	exists := false
-	var id string
-	var obj js.Value
-	c := 0
-
-	for i, p := range parts {
-		c++
-		if i == 0 {
-			id = p
-			if o, e := s.model.values[id]; e {
-				obj = o
-				exists = true
-			} else {
-				if s.parent != nil {
-					return s.parent.Get(name)
-				} else {
-					return obj, false // name not found = false
-				}
-			}
-		} else {
-			if s.model.values[id].Call("hasOwnProperty", p).Bool() {
-				obj = obj.Get(p)
-			}
-		}
-	}
-	return obj, exists
 }
 
 // Digest all Subscription's made on the Scope

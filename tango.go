@@ -43,6 +43,21 @@ func (h *Hook) Run(attr string) {
 	h.Scope.Exec(h.Attrs[attr], h)
 }
 
+// Get is an alias for Scope.Get
+func (h *Hook) Get(name string) (js.Value, bool) {
+	return h.Scope.Get(name)
+}
+
+// Set is an alias for Scope.Set
+func (h *Hook) Set(name string, value interface{}) {
+	h.Scope.Set(name, value)
+}
+
+// SetFunc is an alias for Scope.SetFunc
+func (h *Hook) SetFunc(name string, f SFunc) {
+	h.Scope.SetFunc(name, f)
+}
+
 // GenId creates a random ID used to differentiate objects within the DOM
 func (t *Tango) GenId() string {
 	b := make([]byte, 8)
