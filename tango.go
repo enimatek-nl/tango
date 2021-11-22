@@ -48,14 +48,9 @@ func (h *Hook) Get(name string) (js.Value, bool) {
 	return h.Scope.Get(name)
 }
 
-// Set is an alias for Scope.Set
-func (h *Hook) Set(name string, value interface{}) {
-	h.Scope.Set(name, value)
-}
-
-// SetFunc is an alias for Scope.SetFunc
-func (h *Hook) SetFunc(name string, f SFunc) {
-	h.Scope.SetFunc(name, f)
+// Absorb is an alias for Scope.Absorb
+func (h *Hook) Absorb(i interface{}) {
+	h.Scope.Absorb(i)
 }
 
 // GenId creates a random ID used to differentiate objects within the DOM

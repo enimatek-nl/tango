@@ -38,7 +38,10 @@ func main() {
 ```
 
 ```go
-type ViewController struct { }
+type ViewController struct {
+	Hello   string      `tng:"hello"`
+	ClickMe tango.SFunc `tng:"clickme"`
+}
 
 func (v ViewController) Config() tango.ComponentConfig {
     return tango.ComponentConfig{
@@ -48,11 +51,14 @@ func (v ViewController) Config() tango.ComponentConfig {
     }
 }
 
-func (v ViewController) Constructor(parent tango.Hook) bool {
-    parent.Set("hello", "...")
-    parent.Scope.SetFunc("clickme", (hook tango.Hook) {
-        parent.Set("hello", "world!")
+func (v *ViewController) Constructor(tng tango.Hook) bool {
+    v.Hello = "..."
+	v.ClickMe = (loc *tango.Hook) {
+        v.Hello = "world!"
+		tng.Absorb(v)
     })
+
+    tng.Absorb(v)
     return true
 }
 

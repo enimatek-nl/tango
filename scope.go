@@ -3,6 +3,7 @@ package tango
 import (
 	"encoding/json"
 	"github.com/enimatek-nl/tango/vert"
+	"reflect"
 	"strings"
 	"syscall/js"
 )
@@ -39,6 +40,39 @@ func NewScope(parent *Scope) *Scope {
 		},
 		parent: parent,
 	}
+}
+
+// Absorb will reflect all tng tags and map them to the SModel
+func (s *Scope) Absorb(i interface{}) {
+	t := reflect.TypeOf(i).Elem()
+	rv := reflect.ValueOf(i).Elem()
+
+	num := t.NumField()
+
+	d := false // should we digest?
+
+	for i := 0; i < num; i++ {
+		sf := t.Field(i)
+		if tag, ok := sf.Tag.Lookup("tng"); ok {
+			if !d {
+				d = true
+			}
+			fv := rv.Field(i)
+			if fv.Kind() == reflect.Func {
+				s.model.functions[tag] = fv.Interface().(SFunc)
+			} else {
+				s.Set(tag, fv.Interface())
+			}
+		}
+	}
+	if d {
+		s.Digest()
+	}
+}
+
+// Extract will reflect all tng tags and retrieve all the values from the SModel
+func (s *Scope) Extract(i interface{}) {
+	// TODO: not yet implemented
 }
 
 // SetFunc will add a function shared by name with the DOM (view)
