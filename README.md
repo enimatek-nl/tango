@@ -30,7 +30,7 @@ func main() {
         std.Model{},
         std.Attr{})
     
-    tg.AddRoute(tango.NewRoute("/", &ViewController{}))
+    tg.AddRoute(tango.NewRoute("/", &ViewController{Hello: "hello?"}))
     
     tg.Bootstrap()
 
@@ -52,11 +52,10 @@ func (v ViewController) Config() tango.ComponentConfig {
 }
 
 func (v *ViewController) Constructor(tng tango.Hook) bool {
-    v.Hello = "..."
-	v.ClickMe = (loc *tango.Hook) {
+    v.ClickMe = (loc *tango.Hook) {
         v.Hello = "world!"
-		tng.Absorb(v)
-    })
+	tng.Absorb(v)
+    }
 
     tng.Absorb(v)
     return true
