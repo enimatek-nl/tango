@@ -35,8 +35,8 @@ func (m Model) Constructor(hook tango.Hook) bool {
 	return true
 }
 
-func (m Model) BeforeRender(hook tango.Hook) {}
-
-func (m Model) AfterRender(hook tango.Hook) {}
-
 func (m Model) Render() string { return "" }
+
+func (m Model) AfterRender(hook tango.Hook) bool {
+	return false
+}

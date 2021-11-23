@@ -20,8 +20,7 @@ type ComponentConfig struct {
 // Only the Tag and Controller Kind can use the Render func to return an HTML template
 type Component interface {
 	Config() ComponentConfig
-	Constructor(tng Hook) bool
-	BeforeRender(tng Hook)
+	Constructor(tng Hook) bool // Scope values can be setup once first run of the Component with a new scope
 	Render() string
-	AfterRender(tng Hook)
+	AfterRender(tng Hook) bool // Set SModel values and Scope.Digest them each time the route is hit
 }

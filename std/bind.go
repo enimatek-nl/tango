@@ -31,8 +31,8 @@ func (b Bind) Constructor(hook tango.Hook) bool {
 	return true
 }
 
-func (b Bind) BeforeRender(hook tango.Hook) {}
-
-func (b Bind) AfterRender(hook tango.Hook) {}
-
 func (b Bind) Render() string { return "" }
+
+func (b Bind) AfterRender(hook tango.Hook) bool {
+	return false
+}

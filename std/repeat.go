@@ -68,8 +68,8 @@ func (r Repeat) Constructor(hook tango.Hook) bool {
 	return false
 }
 
-func (r Repeat) BeforeRender(hook tango.Hook) {}
-
-func (r Repeat) AfterRender(hook tango.Hook) {}
-
 func (r Repeat) Render() string { return "" }
+
+func (r Repeat) AfterRender(hook tango.Hook) bool {
+	return false
+}

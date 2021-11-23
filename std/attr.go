@@ -51,8 +51,8 @@ func (a Attr) Constructor(hook tango.Hook) bool {
 	return true
 }
 
-func (a Attr) BeforeRender(hook tango.Hook) {}
-
-func (a Attr) AfterRender(hook tango.Hook) {}
-
 func (a Attr) Render() string { return "" }
+
+func (a Attr) AfterRender(hook tango.Hook) bool {
+	return false
+}

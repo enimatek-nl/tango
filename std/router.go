@@ -30,8 +30,8 @@ func (r Router) Constructor(hook tango.Hook) bool {
 	return true
 }
 
-func (r Router) BeforeRender(hook tango.Hook) {}
-
-func (r Router) AfterRender(hook tango.Hook) {}
-
 func (r Router) Render() string { return "" }
+
+func (r Router) AfterRender(hook tango.Hook) bool {
+	return false
+}

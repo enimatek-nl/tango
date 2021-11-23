@@ -9,7 +9,7 @@ import (
 )
 
 // SFunc type defines a loc(al) Hook used within JS functions and callbacks
-type SFunc func(loc *Hook)
+type SFunc func(self *Tango, this js.Value, local *Scope)
 
 // SModel stands for Scope Model it contains all values (properties) and functions (methods) that will be available in the DOM (view)
 type SModel struct {
@@ -43,36 +43,57 @@ func NewScope(parent *Scope) *Scope {
 }
 
 // Absorb will reflect all tng tags and map them to the SModel
-func (s *Scope) Absorb(i interface{}) {
-	t := reflect.TypeOf(i).Elem()
-	rv := reflect.ValueOf(i).Elem()
+func (s *Scope) Absorb(i interface{}) bool {
+	d := false // was something digested?
 
-	num := t.NumField()
+	if reflect.TypeOf(i).Kind() == reflect.Ptr {
+		t := reflect.TypeOf(i).Elem()
+		rv := reflect.ValueOf(i).Elem()
 
-	d := false // should we digest?
+		num := t.NumField()
 
-	for i := 0; i < num; i++ {
-		sf := t.Field(i)
-		if tag, ok := sf.Tag.Lookup("tng"); ok {
-			if !d {
-				d = true
-			}
-			fv := rv.Field(i)
-			if fv.Kind() == reflect.Func {
-				s.model.functions[tag] = fv.Interface().(SFunc)
-			} else {
-				s.Set(tag, fv.Interface())
+		for i := 0; i < num; i++ {
+			sf := t.Field(i)
+			if tag, ok := sf.Tag.Lookup("tng"); ok {
+				if !d {
+					d = true
+				}
+				fv := rv.Field(i)
+
+				if fv.Kind() == reflect.Func {
+					s.model.functions[tag] = fv.Interface().(SFunc)
+				} else {
+					s.Set(tag, fv.Interface())
+				}
 			}
 		}
 	}
-	if d {
-		s.Digest()
-	}
+
+	return d
 }
 
 // Extract will reflect all tng tags and retrieve all the values from the SModel
 func (s *Scope) Extract(i interface{}) {
-	// TODO: not yet implemented
+	t := reflect.TypeOf(i).Elem()
+	rv := reflect.ValueOf(i).Elem()
+
+	num := t.NumField()
+	for i := 0; i < num; i++ {
+		sf := t.Field(i)
+		if tag, ok := sf.Tag.Lookup("tng"); ok {
+			fv := rv.Field(i)
+			if fv.Kind() != reflect.Func {
+
+				if v, o := s.Get(tag); o {
+					// get js.Value .. check against kind (struct? etc.)
+					// 'vert' it into the correct value somehow and set it :)
+					//fv.Set(v.JSValue())
+					println(v.String())
+				}
+
+			}
+		}
+	}
 }
 
 // SetFunc will add a function shared by name with the DOM (view)
@@ -204,7 +225,7 @@ func (s *Scope) Destroy() {
 // Exec the underlying func of the name index
 func (s *Scope) Exec(name string, hook *Hook) {
 	if f, exists := s.model.functions[name]; exists {
-		f(hook)
+		f(hook.Self, hook.Node, hook.Scope)
 		return
 	} else if s.parent != nil {
 		s.parent.Exec(name, hook)

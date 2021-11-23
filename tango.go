@@ -48,9 +48,11 @@ func (h *Hook) Get(name string) (js.Value, bool) {
 	return h.Scope.Get(name)
 }
 
-// Absorb is an alias for Scope.Absorb
-func (h *Hook) Absorb(i interface{}) {
-	h.Scope.Absorb(i)
+// Digest is an alias for Scope.Absorb but includes a Scope.Digest when needed
+func (h *Hook) Digest(i interface{}) {
+	if h.Scope.Absorb(i) {
+		h.Scope.Digest()
+	}
 }
 
 // GenId creates a random ID used to differentiate objects within the DOM
@@ -113,10 +115,12 @@ func (t *Tango) navigate(path string) {
 	route, attrs := t.matchRoute(path)
 	if route != nil {
 		construct := false
+
 		if route.scope == nil {
 			route.scope = NewScope(t.scope)
 			construct = true
 		}
+
 		hook := Hook{
 			Self:  t,
 			Scope: route.scope,
@@ -124,10 +128,12 @@ func (t *Tango) navigate(path string) {
 			Node:  t.Root,
 			Queue: nil,
 		}
-		route.root.BeforeRender(hook)
+
 		t.render(route.root, construct, hook)
 		t.finish(route.scope, t.Root)
+
 		route.root.AfterRender(hook)
+		hook.Digest(route.root)
 	} else {
 		println("route not found: " + path)
 	}
@@ -241,6 +247,9 @@ func (t *Tango) exec(scope *Scope, node js.Value, queue *Queue) bool {
 func (t *Tango) render(component Component, construct bool, hook Hook) (stop bool) {
 	if construct {
 		stop = !component.Constructor(hook)
+		if !stop {
+			hook.Scope.Absorb(component)
+		}
 	}
 	if component.Config().Kind != Attribute {
 		hook.Node.Set("innerHTML", component.Render())

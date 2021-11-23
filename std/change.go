@@ -29,8 +29,8 @@ func (c Change) Constructor(hook tango.Hook) bool {
 	return true
 }
 
-func (c Change) BeforeRender(hook tango.Hook) {}
-
-func (c Change) AfterRender(hook tango.Hook) {}
-
 func (c Change) Render() string { return "" }
+
+func (c Change) AfterRender(hook tango.Hook) bool {
+	return false
+}

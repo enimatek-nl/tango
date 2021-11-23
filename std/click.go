@@ -28,8 +28,8 @@ func (c Click) Constructor(hook tango.Hook) bool {
 	return true
 }
 
-func (c Click) BeforeRender(hook tango.Hook) {}
-
-func (c Click) AfterRender(hook tango.Hook) {}
-
 func (c Click) Render() string { return "" }
+
+func (c Click) AfterRender(hook tango.Hook) bool {
+	return false
+}

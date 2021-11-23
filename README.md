@@ -52,18 +52,13 @@ func (v ViewController) Config() tango.ComponentConfig {
 }
 
 func (v *ViewController) Constructor(tng tango.Hook) bool {
-    v.ClickMe = (loc *tango.Hook) {
+    v.ClickMe = func(self *tango.Tango, this js.Value, local *tango.Scope) {
         v.Hello = "world!"
-	tng.Absorb(v)
+        tng.Digest(v)
     }
 
-    tng.Absorb(v)
     return true
 }
-
-func (v ViewController) BeforeRender(parent tango.Hook) {}
-
-func (v ViewController) AfterRender(parent tango.Hook) {}
 
 func (v ViewController) Render() string {
     return `
@@ -72,6 +67,10 @@ func (v ViewController) Render() string {
             <button tng-click="clickme">click me!</button>
         </div>
     `
+}
+
+func (v ViewController) AfterRender(tng tango.Hook) bool {
+	return false
 }
 ```
 
